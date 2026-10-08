@@ -1,3 +1,4 @@
 # microservice specific routes
 
-GET        /hello-world             uk.gov.hmrc.sdecipaasstub.controllers.MicroserviceHelloWorldController.hello
+GET        /api/v1/hello             uk.gov.hmrc.sdecipaasstub.controllers.MicroserviceHelloWorldController.hello
+POST       /api/v1/staff             uk.gov.hmrc.sdecipaasstub.controllers.StaffController.insert

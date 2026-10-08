@@ -14,13 +14,18 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.sdecipaasstub.config
+package uk.gov.hmrc.sdecipaasstub.dto
 
-import play.api.Configuration
+import play.api.libs.json.*
 
-import javax.inject.{Inject, Singleton}
+case class Staff(
+  pid:   String,
+  name:  String,
+  email: String,
+  srs:   String
+)
 
-@Singleton
-class AppConfig @Inject() (config: Configuration):
+object Staff:
+  given format: OFormat[Staff] = Json.format[Staff]
 
-  val appName: String = config.get[String]("appName")
+  def fromJson(json: JsValue): JsResult[Staff] = json.validate[Staff]

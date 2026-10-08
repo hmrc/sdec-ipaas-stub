@@ -16,11 +16,21 @@
 
 package uk.gov.hmrc.sdecipaasstub.config
 
-import play.api.Configuration
+import cats.effect.Async
+import cats.effect.kernel.Resource
+import com.typesafe.config.Config
+import doobie.hikari.HikariTransactor
+import doobie.util.ExecutionContexts
 
-import javax.inject.{Inject, Singleton}
+object Database:
 
-@Singleton
-class AppConfig @Inject() (config: Configuration):
-
-  val appName: String = config.get[String]("appName")
+  def transactor[F[_]: Async](
+    config: Config
+  ): Resource[F, HikariTransactor[F]] =
+    HikariTransactor.newHikariTransactor(
+      driverClassName = "org.h2.Driver",
+      url = config.getString("db.url"),
+      user = config.getString("db.user"),
+      pass = config.getString("db.password"),
+      connectEC = ExecutionContexts.synchronous
+    )

@@ -14,13 +14,27 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.sdecipaasstub.config
+package uk.gov.hmrc.sdecipaasstub.infrastructure
 
-import play.api.Configuration
+import cats.effect.IO
+import cats.effect.unsafe.IORuntime
+import jakarta.inject.{Inject, Singleton}
+import play.api.mvc.*
 
-import javax.inject.{Inject, Singleton}
+import scala.concurrent.ExecutionContext
 
 @Singleton
-class AppConfig @Inject() (config: Configuration):
+class IOActionBuilder @Inject()(
+  cc:      ControllerComponents,
+  runtime: IORuntime,
+  ec: ExecutionContext
+) extends AbstractController(cc) {
 
-  val appName: String = config.get[String]("appName")
+  def asyncIO(
+    block: Request[AnyContent] => IO[Result]
+  ): Action[AnyContent] =
+    Action.async { request =>
+      block(request).unsafeToFuture()(runtime)
+    }
+
+}

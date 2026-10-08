@@ -14,13 +14,22 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.sdecipaasstub.config
+package uk.gov.hmrc.sdecipaasstub.model
 
-import play.api.Configuration
+case class SRSEnrollment(
+  sdec: String,
+  team: String,
+  role: String
+)
 
-import javax.inject.{Inject, Singleton}
-
-@Singleton
-class AppConfig @Inject() (config: Configuration):
-
-  val appName: String = config.get[String]("appName")
+object SRSEnrollment:
+  private val TokenDelimiter = '_'
+   
+  def extractFromEnrollment(enrollment: String): SRSEnrollment =
+    val firstToken = enrollment.indexOf(TokenDelimiter)
+    val lastToken  = enrollment.lastIndexOf(TokenDelimiter)
+    SRSEnrollment(
+      enrollment.substring(0, firstToken),
+      enrollment.substring(firstToken + 1, lastToken),
+      enrollment.substring(lastToken + 1)
+    )

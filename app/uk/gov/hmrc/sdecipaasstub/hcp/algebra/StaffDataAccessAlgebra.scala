@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.sdecipaasstub.config
+package uk.gov.hmrc.sdecipaasstub.hcp.algebra
 
-import play.api.Configuration
+import uk.gov.hmrc.sdecipaasstub.dto.Staff
+import uk.gov.hmrc.sdecipaasstub.hcp.entity.SdecStaff
 
-import javax.inject.{Inject, Singleton}
+trait StaffDataAccessAlgebra[F[_]] {
 
-@Singleton
-class AppConfig @Inject() (config: Configuration):
-
-  val appName: String = config.get[String]("appName")
+  def findByPID(pid: String): F[Option[SdecStaff]]
+  
+  def insert(staff: Staff): F[Long]
+}
