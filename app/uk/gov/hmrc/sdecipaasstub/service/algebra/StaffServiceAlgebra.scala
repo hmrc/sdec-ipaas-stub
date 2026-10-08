@@ -14,13 +14,11 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.sdecipaasstub.config
+package uk.gov.hmrc.sdecipaasstub.service.algebra
 
-import play.api.Configuration
+import uk.gov.hmrc.sdecipaasstub.dto.{Staff, StaffTeam}
 
-import javax.inject.{Inject, Singleton}
+trait StaffServiceAlgebra[F[_]] {
 
-@Singleton
-class AppConfig @Inject() (config: Configuration):
-
-  val appName: String = config.get[String]("appName")
+  def upsert(staff: Staff): F[StaffTeam]
+}

@@ -14,13 +14,11 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.sdecipaasstub.config
+package uk.gov.hmrc.sdecipaasstub.dto
 
-import play.api.Configuration
+import play.api.libs.json.{Json, OFormat}
 
-import javax.inject.{Inject, Singleton}
+case class ErrorMessage(error: Seq[String])
 
-@Singleton
-class AppConfig @Inject() (config: Configuration):
-
-  val appName: String = config.get[String]("appName")
+object ErrorMessage:
+  given format: OFormat[ErrorMessage] = Json.format[ErrorMessage]

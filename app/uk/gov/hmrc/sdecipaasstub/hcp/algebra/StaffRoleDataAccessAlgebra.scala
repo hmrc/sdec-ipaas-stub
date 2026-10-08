@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.sdecipaasstub.config
+package uk.gov.hmrc.sdecipaasstub.hcp.algebra
+import uk.gov.hmrc.sdecipaasstub.hcp.entity.StaffRole
+import uk.gov.hmrc.sdecipaasstub.model.SRSEnrollment
 
-import play.api.Configuration
+trait StaffRoleDataAccessAlgebra[F[_]] {
 
-import javax.inject.{Inject, Singleton}
+  def findByStaffAndTeam(staffId: Long, teamId: Long): F[StaffRole]
 
-@Singleton
-class AppConfig @Inject() (config: Configuration):
+  def insert(staffId: Long, teamId: Long, enrolment: SRSEnrollment): F[Long]
 
-  val appName: String = config.get[String]("appName")
+  def delete(staffId: Long, teamId: Long): F[Int]
+}

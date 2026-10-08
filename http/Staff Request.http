@@ -1,0 +1,11 @@
+### POST Request to create or update Staff
+POST http://localhost:4999/sdec-ipaas-stub/api/v1/staff
+Content-Type: application/json
+
+{
+  "pid": "1001",
+  "name": "John Tester",
+  "email": "j.tester@test.com",
+  "srs": "SDEC_Child_Benefit_Manager"
+}
+###

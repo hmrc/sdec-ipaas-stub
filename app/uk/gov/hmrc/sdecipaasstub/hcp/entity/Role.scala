@@ -14,13 +14,22 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.sdecipaasstub.config
+package uk.gov.hmrc.sdecipaasstub.hcp.entity
 
-import play.api.Configuration
+import doobie.util.meta.Meta
 
-import javax.inject.{Inject, Singleton}
+enum Role {
+  case Manager
+  case Supervisor
+  case User
+  case CaseWorker
+  case Undefined
+}
 
-@Singleton
-class AppConfig @Inject() (config: Configuration):
+object Role {
+  def parseRole(value: String): Role =
+    Role.values.find(_.toString.equalsIgnoreCase(value)).getOrElse(Undefined)
 
-  val appName: String = config.get[String]("appName")
+  given Meta[Role] =
+    Meta[String].timap(parseRole)(_.toString)
+}

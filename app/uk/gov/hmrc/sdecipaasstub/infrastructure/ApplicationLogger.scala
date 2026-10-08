@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.sdecipaasstub.config
+package uk.gov.hmrc.sdecipaasstub.infrastructure
+import cats.Applicative
+import cats.effect.Sync
+import org.typelevel.log4cats.SelfAwareStructuredLogger
+import org.typelevel.log4cats.slf4j.Slf4jLogger
 
-import play.api.Configuration
-
-import javax.inject.{Inject, Singleton}
-
-@Singleton
-class AppConfig @Inject() (config: Configuration):
-
-  val appName: String = config.get[String]("appName")
+trait ApplicationLogger[F[_]: Applicative: Sync]:
+  protected lazy val logger: SelfAwareStructuredLogger[F] =
+    Slf4jLogger.getLoggerFromName[F](this.getClass.getName)

@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.sdecipaasstub.config
+package uk.gov.hmrc.sdecipaasstub.hcp.stubs
 
-import play.api.Configuration
+import cats.effect.IO
+import doobie.util.transactor.Transactor
+import uk.gov.hmrc.sdecipaasstub.hcp.stubs.repo.TeamDataRepository
 
-import javax.inject.{Inject, Singleton}
+import javax.inject.Inject
 
-@Singleton
-class AppConfig @Inject() (config: Configuration):
-
-  val appName: String = config.get[String]("appName")
+class IOTeamDataRepository @Inject() (xa: Transactor[IO]) extends TeamDataRepository[IO](xa) {}

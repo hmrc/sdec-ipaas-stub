@@ -14,13 +14,17 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.sdecipaasstub.config
+package uk.gov.hmrc.sdecipaasstub.service.io
 
-import play.api.Configuration
+import cats.effect.IO
+import uk.gov.hmrc.sdecipaasstub.hcp.algebra.{StaffDataAccessAlgebra, StaffRoleDataAccessAlgebra, TeamDataAccessAlgebra}
+import uk.gov.hmrc.sdecipaasstub.service.impl.StaffService
 
 import javax.inject.{Inject, Singleton}
 
 @Singleton
-class AppConfig @Inject() (config: Configuration):
-
-  val appName: String = config.get[String]("appName")
+class IOStaffService @Inject() (
+  staffDataAccess:     StaffDataAccessAlgebra[IO],
+  teamDataAccess:      TeamDataAccessAlgebra[IO],
+  staffRoleDataAccess: StaffRoleDataAccessAlgebra[IO]
+) extends StaffService[IO](staffDataAccess, teamDataAccess, staffRoleDataAccess) {}

@@ -1,0 +1,4 @@
+### GET request to example server
+GET http://localhost:4999/sdec-ipaas-stub/api/v1/hello
+###
+

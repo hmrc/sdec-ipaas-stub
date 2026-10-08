@@ -14,13 +14,17 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.sdecipaasstub.config
+package uk.gov.hmrc.sdecipaasstub.infrastructure
 
-import play.api.Configuration
+import cats.effect.IO
+import doobie.util.transactor.Transactor
 
-import javax.inject.{Inject, Singleton}
+import javax.inject.{Inject, Provider, Singleton}
 
 @Singleton
-class AppConfig @Inject() (config: Configuration):
+class DatabaseTransactorProvider @Inject() (
+  databaseTransactor: DatabaseTransactor
+) extends Provider[Transactor[IO]]:
 
-  val appName: String = config.get[String]("appName")
+  override def get(): Transactor[IO] =
+    databaseTransactor.xa
