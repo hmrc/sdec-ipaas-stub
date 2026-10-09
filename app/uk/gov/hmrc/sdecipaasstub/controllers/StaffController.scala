@@ -18,12 +18,14 @@ package uk.gov.hmrc.sdecipaasstub.controllers
 
 import cats.effect.IO
 import jakarta.inject.{Inject, Singleton}
-import play.api.libs.json.{JsError, JsResult, JsSuccess, Json}
+import play.api.libs.json.{JsError, JsPath, JsResult, JsSuccess, Json, JsonValidationError}
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
-import uk.gov.hmrc.sdecipaasstub.dto.{ErrorMessage, Staff}
+import uk.gov.hmrc.sdecipaasstub.dto.{ErrorMessage, Staff, StaffUpdate}
 import uk.gov.hmrc.sdecipaasstub.infrastructure.{ApplicationLogger, IOActionBuilder}
 import uk.gov.hmrc.sdecipaasstub.service.algebra.StaffServiceAlgebra
+
+import scala.language.postfixOps
 
 @Singleton
 class StaffController @Inject() (
@@ -33,12 +35,25 @@ class StaffController @Inject() (
 ) extends BackendController(cc)
     with ApplicationLogger[IO] {
 
+  def updateOrInsert: Action[AnyContent] =
+    action.asyncIO { implicit request =>
+      request.body.asJson match {
+        case Some(json) =>
+          for {
+            _ <- logger.info(s"Handling PUT for $json")
+            staffUpdate = StaffUpdate.fromJson(json)
+            response <- handleStaffUpdate(staffUpdate)
+          } yield response
+        case None => getBadRequest(Seq("Request body must contain JSON"))
+      }
+    }
+
   def insert: Action[AnyContent] =
     action.asyncIO { implicit request =>
       request.body.asJson match {
         case Some(json) =>
           for {
-            _ <- logger.info(s"Handling insert for $json")
+            _ <- logger.info(s"Handling POST for $json")
             staff = Staff.fromJson(json)
             response <- handleStaffUpsert(staff)
           } yield response
@@ -47,17 +62,27 @@ class StaffController @Inject() (
       }
     }
 
+  private def handleStaffUpdate(jsResult: JsResult[StaffUpdate]): IO[Result] =
+    jsResult match {
+      case JsSuccess(staffUpdate, _) =>
+        staffService.upsert(staffUpdate).map(r => Json.toJson(r))
+      case JsError(errors)        =>
+        handleJsErrors(errors)
+    }
+
   private def handleStaffUpsert(jsResult: JsResult[Staff]): IO[Result] =
     jsResult match {
       case JsSuccess(staff, _) =>
         staffService.upsert(staff).map(r => Ok(Json.toJson(r)))
       case JsError(errors) =>
-        val jsonErrors =
-          errors.map { (path, validationErrors) =>
-            s"${path.toString} Errors: ${validationErrors.mkString(",")}"
-          }.toList
-        getBadRequest(jsonErrors)
+        handleJsErrors(errors)
     }
+
+  private def handleJsErrors(errors: collection.Seq[(JsPath, collection.Seq[JsonValidationError])]) =
+    val jsonErrors = errors.map { (path, validationErrors) =>
+      s"${path.toString} Errors: ${validationErrors.mkString(",")}"
+      }.toList
+    getBadRequest(jsonErrors)
 
   private def getBadRequest(errors: Seq[String]): IO[Result] =
     IO.pure(BadRequest(Json.toJson(ErrorMessage(errors))))

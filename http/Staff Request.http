@@ -1,3 +1,29 @@
+### POST Request to create or update Staff from landing on workspace page
+PUT http://localhost:4999/sdec-ipaas-stub/api/v1/staff
+Content-Type: application/json
+{
+  "pid": "1001",
+  "name": "John Tester",
+  "email": "j.tester@test.com",
+  "enrollments": [
+    {
+        "team": "Child_Benefit",
+        "role": "User"
+    },
+    {
+        "team": "VAT",
+        "role": "Manager"
+    },
+    {
+        "team": "Customs",
+        "role": "User"
+    }
+]
+}
+###
+
+
+
 ### POST Request to create or update Staff
 POST http://localhost:4999/sdec-ipaas-stub/api/v1/staff
 Content-Type: application/json
@@ -8,4 +34,5 @@ Content-Type: application/json
   "email": "j.tester@test.com",
   "srs": "SDEC_Child_Benefit_Manager"
 }
+
 ###

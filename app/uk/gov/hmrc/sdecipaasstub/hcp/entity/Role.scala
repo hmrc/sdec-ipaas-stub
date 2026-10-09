@@ -17,6 +17,7 @@
 package uk.gov.hmrc.sdecipaasstub.hcp.entity
 
 import doobie.util.meta.Meta
+import play.api.libs.json.{Json, OFormat}
 
 enum Role {
   case Manager
@@ -32,4 +33,6 @@ object Role {
 
   given Meta[Role] =
     Meta[String].timap(parseRole)(_.toString)
+
+  given format: OFormat[Role] = Json.format[Role]
 }

@@ -7,8 +7,17 @@ TODO 8-(
 
 ## REST API
 
+### Hello
+The following gets the system up and running, useful for testing etc.
+```http request
+GET http://localhost:4999/sdec-ipaas-stub/api/v1/hello
+```
+
 ### Staff and Team
-The following will insert, if it does not already exist:
+The following endpoint is a call that will be normally made when the HMRC staff lands on the workspace page:
+
+
+The following will insert a single SRS enrollment, if it does not already exist:
 ```http request
 POST http://localhost:4999/sdec-ipaas-stub/api/v1/staff
 Content-Type: application/json
