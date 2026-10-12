@@ -33,7 +33,7 @@ class MicroserviceHelloWorldController @Inject() (
     with ApplicationLogger[IO]:
 
   def hello: Action[AnyContent] =
-    action.asyncIO { request =>
+    action.asyncIO { _ =>
       for {
         _ <- logger.info(s"Running Hello API")
         response = Results.Ok(Json.toJson(Message("hello")))
