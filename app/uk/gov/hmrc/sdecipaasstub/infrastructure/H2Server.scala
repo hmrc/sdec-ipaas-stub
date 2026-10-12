@@ -26,9 +26,9 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class H2Server @Inject() (
-                           configuration: Configuration,
-                           lifecycle: ApplicationLifecycle
-                         )(using ExecutionContext):
+  configuration: Configuration,
+  lifecycle:     ApplicationLifecycle
+)(using ExecutionContext):
 
   private val port =
     configuration.get[Int]("db.server.port")

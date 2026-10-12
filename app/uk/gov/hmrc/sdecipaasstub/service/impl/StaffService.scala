@@ -19,7 +19,7 @@ package uk.gov.hmrc.sdecipaasstub.service.impl
 import cats.Monad
 import cats.effect.Sync
 import cats.syntax.all.*
-import uk.gov.hmrc.sdecipaasstub.dto.{Staff, StaffTeam}
+import uk.gov.hmrc.sdecipaasstub.dto.{Staff, StaffTeam, StaffTeams, StaffUpdate}
 import uk.gov.hmrc.sdecipaasstub.hcp.algebra.{StaffDataAccessAlgebra, StaffRoleDataAccessAlgebra, TeamDataAccessAlgebra}
 import uk.gov.hmrc.sdecipaasstub.infrastructure.ApplicationLogger
 import uk.gov.hmrc.sdecipaasstub.model.SRSEnrollment
@@ -55,6 +55,34 @@ class StaffService[F[_]: Monad: Sync] @Inject() (
     logger.warn(s"Staff/Team Upsert failed with ${e.getMessage}")
     throw new StaffInsertError(e.getMessage)
   }
+
+  override def upsert(staffUpdate: StaffUpdate): F[StaffTeams] =
+    for {
+      _         <- logger.info(s"Upsert: $staffUpdate")
+      staffOpts <- staffDataAccess.findByPID(staffUpdate.pid)
+      staffId = staffOpts.fold(0L)(_.id)
+
+      staffTeams <- staffUpdate.enrollments.traverse { teamRole =>
+                      val enrollment = SRSEnrollment.toSRSEnrollment(teamRole)
+                      val staff      = Staff(
+                        pid = staffUpdate.pid,
+                        name = staffUpdate.name,
+                        email = staffUpdate.email,
+                        srs = enrollment.toString
+                      )
+                      checkAndInsertForTeams(staffId, staff, enrollment)
+                    }
+    } yield StaffTeams.fromList(staffTeams)
+
+  private def checkAndInsertForTeams(staffId: Long, staff: Staff, enrollment: SRSEnrollment): F[StaffTeam] =
+    for {
+      team <- teamDataAccess.getByTeamName(enrollment.team)
+      teamId = team match {
+                 case Some(t) => t.id
+                 case None    => 0L
+               }
+      staffTeam <- checkAndInsert(staffId, teamId, staff, enrollment)
+    } yield staffTeam
 
   private def checkAndInsert(staffId: Long, teamId: Long, staff: Staff, enrollment: SRSEnrollment): F[StaffTeam] =
     (staffId, teamId) match {

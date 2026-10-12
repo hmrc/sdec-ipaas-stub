@@ -16,15 +16,20 @@
 
 package uk.gov.hmrc.sdecipaasstub.model
 
+import uk.gov.hmrc.sdecipaasstub.dto.TeamRole
+
 case class SRSEnrollment(
   sdec: String,
   team: String,
   role: String
-)
+) {
+  override def toString: String = s"${this.sdec}_${this.team}${this.role.toString}"
+}
 
 object SRSEnrollment:
   private val TokenDelimiter = '_'
-   
+  private val SrsIdentifier  = "SDEC"
+
   def extractFromEnrollment(enrollment: String): SRSEnrollment =
     val firstToken = enrollment.indexOf(TokenDelimiter)
     val lastToken  = enrollment.lastIndexOf(TokenDelimiter)
@@ -32,4 +37,11 @@ object SRSEnrollment:
       enrollment.substring(0, firstToken),
       enrollment.substring(firstToken + 1, lastToken),
       enrollment.substring(lastToken + 1)
+    )
+
+  def toSRSEnrollment(teamRole: TeamRole): SRSEnrollment =
+    SRSEnrollment(
+      sdec = SrsIdentifier,
+      team = teamRole.team,
+      role = teamRole.role.toString
     )

@@ -16,9 +16,11 @@
 
 package uk.gov.hmrc.sdecipaasstub.service.algebra
 
-import uk.gov.hmrc.sdecipaasstub.dto.{Staff, StaffTeam}
+import uk.gov.hmrc.sdecipaasstub.dto.{Staff, StaffTeam, StaffTeams, StaffUpdate}
 
 trait StaffServiceAlgebra[F[_]] {
 
   def upsert(staff: Staff): F[StaffTeam]
+
+  def upsert(staffUpdate: StaffUpdate): F[StaffTeams]
 }

@@ -56,7 +56,6 @@ class StaffDataRepository[F[_]: MonadCancelThrow](
           ${staff.name},
           ${staff.email}
         )
-      """
-      .update
+      """.update
       .withUniqueGeneratedKeys[Long]("id")
       .transact(xa)
