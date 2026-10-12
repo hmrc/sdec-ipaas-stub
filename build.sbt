@@ -1,6 +1,15 @@
+import uk.gov.hmrc.DefaultBuildSettings
+
 ThisBuild / majorVersion := 0
 ThisBuild / scalaVersion := "3.3.6"
 ThisBuild / scalacOptions += "-Wconf:msg=Flag.*repeatedly:s"
+
+lazy val compilerSettings = Seq(
+  scalaVersion := "3.3.7",
+  scalacOptions += "-Wconf:src=routes/.*:s",
+  scalacOptions += "-Wconf:msg=unused import&src=html/.*:s",
+  scalacOptions += "-Wconf:msg=Flag.*repeatedly:s"
+)
 
 lazy val microservice = Project("sdec-ipaas-stub", file("."))
   .enablePlugins(play.sbt.PlayScala, SbtDistributablesPlugin)
@@ -9,12 +18,22 @@ lazy val microservice = Project("sdec-ipaas-stub", file("."))
     libraryDependencies ++= AppDependencies.compile ++ AppDependencies.test,
     // https://www.scala-lang.org/2021/01/12/configuring-and-suppressing-warnings.html
     // suppress warnings in generated routes files
-    scalacOptions += "-Wconf:src=routes/.*:s"
+    scalacOptions += "-Wconf:src=routes/.*:s",
+    compilerSettings
   )
   .settings(
     Compile / unmanagedResourceDirectories += baseDirectory.value / "resources",
     PlayKeys.playDefaultPort := 4999
   )
+
+lazy val it = project
+  .enablePlugins(PlayScala)
+  .dependsOn(microservice % "test->test")
+  .settings(
+    DefaultBuildSettings.itSettings(),
+    compilerSettings
+  )
+  .settings(libraryDependencies ++= AppDependencies.it)
 
 inThisBuild(
   List(
