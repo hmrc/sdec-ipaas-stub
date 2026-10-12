@@ -29,4 +29,3 @@ object Staff:
   given format: OFormat[Staff] = Json.format[Staff]
 
   def fromJson(json: JsValue): JsResult[Staff] = json.validate[Staff]
-

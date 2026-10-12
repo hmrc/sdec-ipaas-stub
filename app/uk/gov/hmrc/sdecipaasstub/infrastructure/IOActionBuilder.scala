@@ -24,10 +24,10 @@ import play.api.mvc.*
 import scala.concurrent.ExecutionContext
 
 @Singleton
-class IOActionBuilder @Inject()(
+class IOActionBuilder @Inject() (
   cc:      ControllerComponents,
   runtime: IORuntime,
-  ec: ExecutionContext
+  ec:      ExecutionContext
 ) extends AbstractController(cc) {
 
   def asyncIO(

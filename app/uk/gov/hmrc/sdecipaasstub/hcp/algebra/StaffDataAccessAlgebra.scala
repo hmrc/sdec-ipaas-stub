@@ -22,6 +22,6 @@ import uk.gov.hmrc.sdecipaasstub.hcp.entity.SdecStaff
 trait StaffDataAccessAlgebra[F[_]] {
 
   def findByPID(pid: String): F[Option[SdecStaff]]
-  
+
   def insert(staff: Staff): F[Long]
 }

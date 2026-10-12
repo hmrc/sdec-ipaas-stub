@@ -56,19 +56,33 @@ class StaffService[F[_]: Monad: Sync] @Inject() (
     throw new StaffInsertError(e.getMessage)
   }
 
-  override def upsert(staffUpdate: StaffUpdate): F[StaffTeams] ={
+  override def upsert(staffUpdate: StaffUpdate): F[StaffTeams] =
     for {
-      _ <- logger.info(s"Upsert: $staffUpdate")
+      _         <- logger.info(s"Upsert: $staffUpdate")
       staffOpts <- staffDataAccess.findByPID(staffUpdate.pid)
       staffId = staffOpts.fold(0L)(_.id)
 
-      staffTeams <- staffUpdate.enrollments.traverse{teamRole =>
-        val enrollment = SRSEnrollment.toSRSEnrollment(teamRole)
-        val staff = Staff(pid = staffUpdate.pid, name = staffUpdate.name, email = staffUpdate.email, srs = enrollment.toString)
-        checkAndInsertForTeams()
-      }
-    } yield staffTeams
-  }
+      staffTeams <- staffUpdate.enrollments.traverse { teamRole =>
+                      val enrollment = SRSEnrollment.toSRSEnrollment(teamRole)
+                      val staff      = Staff(
+                        pid = staffUpdate.pid,
+                        name = staffUpdate.name,
+                        email = staffUpdate.email,
+                        srs = enrollment.toString
+                      )
+                      checkAndInsertForTeams(staffId, staff, enrollment)
+                    }
+    } yield StaffTeams.fromList(staffTeams)
+
+  private def checkAndInsertForTeams(staffId: Long, staff: Staff, enrollment: SRSEnrollment): F[StaffTeam] =
+    for {
+      team <- teamDataAccess.getByTeamName(enrollment.team)
+      teamId = team match {
+                 case Some(t) => t.id
+                 case None    => 0L
+               }
+      staffTeam <- checkAndInsert(staffId, teamId, staff, enrollment)
+    } yield staffTeam
 
   private def checkAndInsert(staffId: Long, teamId: Long, staff: Staff, enrollment: SRSEnrollment): F[StaffTeam] =
     (staffId, teamId) match {
