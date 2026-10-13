@@ -1,5 +1,4 @@
 # microservice specific routes
 
-GET        /api/v1/hello             uk.gov.hmrc.sdecipaasstub.controllers.MicroserviceHelloWorldController.hello
 POST       /api/v1/staff             uk.gov.hmrc.sdecipaasstub.controllers.StaffController.insert()
 PUT        /api/v1/staff             uk.gov.hmrc.sdecipaasstub.controllers.StaffController.updateOrInsert()

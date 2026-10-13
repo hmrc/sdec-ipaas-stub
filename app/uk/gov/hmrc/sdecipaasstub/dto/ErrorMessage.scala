@@ -18,7 +18,7 @@ package uk.gov.hmrc.sdecipaasstub.dto
 
 import play.api.libs.json.{Json, OFormat}
 
-case class ErrorMessage(error: Seq[String])
+final case class ErrorMessage(error: Seq[String])
 
 object ErrorMessage:
   given format: OFormat[ErrorMessage] = Json.format[ErrorMessage]

@@ -26,7 +26,7 @@ import uk.gov.hmrc.sdecipaasstub.service.algebra.StaffServiceAlgebra
 import uk.gov.hmrc.sdecipaasstub.service.io.IOStaffService
 
 class GuiceModule extends AbstractModule:
-// bind(new TypeLiteral[] {}).to(classOf[])
+
   override def configure(): Unit =
 
     bind(new TypeLiteral[Transactor[IO]] {}).toProvider(classOf[DatabaseTransactorProvider])

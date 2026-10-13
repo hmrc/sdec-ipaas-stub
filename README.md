@@ -32,9 +32,6 @@ Content-Type: application/json
 
 ## MFT (File Upload Service)
 
-### License
-This code is open source software licensed under the [Apache 2.0 License]("http://www.apache.org/licenses/LICENSE-2.0.html").
-
 ## Database
 You can connect to the built-in H2 database using SQL IDE, such as DataGrip. Use the following:
 ```shell
@@ -60,3 +57,6 @@ Classes can extend `ApplicationLogger` that will make available `logger` in F[_]
 - [Scala Cats](https://typelevel.org/cats/)
 - [Cats-Effect](https://typelevel.org/cats-effect/docs/getting-started)
 - [Doobie](https://typelevel.org/doobie/)
+
+### License
+This code is open source software licensed under the [Apache 2.0 License]("http://www.apache.org/licenses/LICENSE-2.0.html").

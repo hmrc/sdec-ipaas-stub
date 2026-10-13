@@ -33,7 +33,7 @@ class IOActionBuilder @Inject() (
   def asyncIO(
     block: Request[AnyContent] => IO[Result]
   ): Action[AnyContent] =
-    Action.async { request =>
+    Action.async(cc.parsers.default) { request =>
       block(request).unsafeToFuture()(runtime)
     }
 

@@ -19,7 +19,7 @@ package uk.gov.hmrc.sdecipaasstub.controllers
 import cats.effect.IO
 import jakarta.inject.{Inject, Singleton}
 import play.api.libs.json.*
-import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
+import play.api.mvc.{Action, AnyContent, ControllerComponents, Request, Result}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import uk.gov.hmrc.sdecipaasstub.dto.{ErrorMessage, Staff, StaffUpdate}
 import uk.gov.hmrc.sdecipaasstub.infrastructure.{ApplicationLogger, IOActionBuilder}
@@ -36,7 +36,8 @@ class StaffController @Inject() (
     with ApplicationLogger[IO] {
 
   def updateOrInsert(): Action[AnyContent] =
-    action.asyncIO { implicit request =>
+    action.asyncIO { request =>
+      given Request[AnyContent] = request
       request.body.asJson match {
         case Some(json) =>
           for {
@@ -49,7 +50,8 @@ class StaffController @Inject() (
     }
 
   def insert(): Action[AnyContent] =
-    action.asyncIO { implicit request =>
+    action.asyncIO { request =>
+      given Request[AnyContent] = request
       request.body.asJson match {
         case Some(json) =>
           for {
@@ -78,7 +80,7 @@ class StaffController @Inject() (
         handleJsErrors(errors)
     }
 
-  private def handleJsErrors(errors: collection.Seq[(JsPath, collection.Seq[JsonValidationError])]) =
+  private def handleJsErrors(errors: collection.Seq[(JsPath, collection.Seq[JsonValidationError])]): IO[Result] =
     val jsonErrors = errors.map { (path, validationErrors) =>
       s"${path.toString} Errors: ${validationErrors.mkString(",")}"
     }.toList

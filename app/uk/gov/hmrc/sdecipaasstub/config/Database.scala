@@ -22,8 +22,7 @@ import com.typesafe.config.Config
 import doobie.hikari.HikariTransactor
 import doobie.util.ExecutionContexts
 
-object Database:
-
+object Database {
   def transactor[F[_]: Async](
     config: Config
   ): Resource[F, HikariTransactor[F]] =
@@ -34,3 +33,5 @@ object Database:
       pass = config.getString("db.password"),
       connectEC = ExecutionContexts.synchronous
     )
+
+}
