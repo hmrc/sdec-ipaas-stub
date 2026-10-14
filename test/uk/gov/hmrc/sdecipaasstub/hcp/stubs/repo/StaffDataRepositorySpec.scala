@@ -39,7 +39,7 @@ class StaffDataRepositorySpec
     Flyway
       .configure()
       .dataSource(jdbcUrl, "sa", "")
-      .locations("filesystem:conf/db/migration")
+      .locations("classpath:db/migration")
       .load()
       .migrate()
 
