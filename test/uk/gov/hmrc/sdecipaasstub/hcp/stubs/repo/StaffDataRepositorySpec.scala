@@ -22,6 +22,7 @@ import doobie.util.transactor.Transactor
 import org.flywaydb.core.Flyway
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
+import org.scalatest.time.{Millis, Seconds, Span}
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatest.{BeforeAndAfterEach, OptionValues}
 import uk.gov.hmrc.sdecipaasstub.dto.Staff
@@ -32,6 +33,10 @@ class StaffDataRepositorySpec
     with BeforeAndAfterEach
     with ScalaFutures
     with OptionValues {
+
+  override given patienceConfig: PatienceConfig =
+    PatienceConfig(timeout = Span(5, Seconds), interval = Span(50, Millis))
+
   private val jdbcUrl =
     "jdbc:h2:mem:staff_repository_test;DB_CLOSE_DELAY=-1;DATABASE_TO_LOWER=TRUE;USER=sa;PASSWORD="
 
