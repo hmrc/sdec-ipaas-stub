@@ -4,7 +4,6 @@ bin
 .bloop/
 .cache
 /.classpath
-db
 dist
 .DS_Store
 **/*.DS_Store

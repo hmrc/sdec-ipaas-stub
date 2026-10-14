@@ -1,0 +1,68 @@
+INSERT INTO sdec_staff (pid, name)
+VALUES
+    (1001, 'John Test'),
+    (1002, 'James Brown'),
+    (1003, 'Jane Doe'),
+    (1004, 'Mary Lamb'),
+    (123456, 'VAT Success Test User');
+
+INSERT INTO sdec_team (srs_name, is_task_based)
+VALUES ('Child_Benefit', true),
+       ('VAT', false),
+       ('Audit', false);
+
+INSERT INTO staff_role (staff_id, team_id, srs_role)
+VALUES (1, 1, 'Manager'),
+       (2, 1, 'User'),
+       (3, 2, 'Manager'),
+       (4, 3, 'User'),
+
+       -- Success scenario
+       (5, 2, 'User');
+
+INSERT INTO sdec_recipient (internal_id, first_name, last_name, email, phone_number, nino)
+VALUES ('12345', 'John', 'Smith', 'user@test.com', NULL, 'WM111111D');
+
+INSERT INTO sdec_thread (reference,
+                         status,
+                         created_by,
+                         created_timestamp,
+                         last_updated_timestamp,
+                         thread_expiry_date,
+                         case_reference,
+                         recipient_id,
+                         email,
+                         nino,
+                         message,
+                         required_by,
+                         team_id)
+VALUES (
+        'THREAD1000AA',
+        'Active',
+        1,
+        '2026-09-01 09:30:00',
+        '2026-09-01 10:15:00',
+        '2026-10-01',
+        'CASE-100001',
+        1,
+        'john.smith@example.com',
+        'AA123456A',
+        'Where are the files?',
+        NULL,
+        1),
+
+       (
+        'THREAD2000BB',
+        'Draft',
+        3,
+        '2026-09-02 14:00:00',
+        '2026-09-02 14:00:00',
+        '2026-10-02',
+        'CASE-100002',
+        NULL,
+        'jane.doe@example.com',
+        'BB654321B',
+        'Please send the requested files',
+        '2027-01-31',
+        2);
+
