@@ -23,7 +23,8 @@ lazy val microservice = Project("sdec-ipaas-stub", file("."))
   )
   .settings(
     Compile / unmanagedResourceDirectories += baseDirectory.value / "resources",
-    PlayKeys.playDefaultPort := 4999
+    PlayKeys.playDefaultPort := 4999,
+    Test / unmanagedResourceDirectories += baseDirectory.value / "conf"
   )
 
 lazy val it = project
