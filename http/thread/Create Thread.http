@@ -1,0 +1,34 @@
+### POST to create a thread - it should return { "threadReference": "ABCD12345" }  with status DRAFT
+POST http://localhost:4999/sdec-ipaas-stub/api/v1/thread
+Content-Type: application/json
+
+{
+    "pid": "1001",
+    "team": "Child_Benefit"
+}
+
+###
+
+### PUT to update thread with thread information: Response: 204
+POST http://localhost:4999/sdec-ipaas-stub/api/v1/thread/{thread-reference}
+Content-Type:  application/json
+
+{
+  "firstName": "John",
+  "surname": "Smith",
+  "email": "js@test.com",
+  "mobile": null,
+  "nino": "WM112233C",
+  "caseReference": "CASE1",
+  "requestedItems": [
+    "P45",
+    "P60 for 2025"
+  ],
+  "message": "Where are the files?",
+  "requestedBy": {
+    "day": 22,
+    "month": 12,
+    "year": 2027
+  }
+}
+###
