@@ -1,0 +1,3 @@
+### GET Health Check
+GET http://localhost:4999/ping/ping
+###
