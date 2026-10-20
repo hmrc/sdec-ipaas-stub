@@ -17,14 +17,15 @@
 package uk.gov.hmrc.sdecipaasstub.service.io
 
 import cats.effect.IO
-import uk.gov.hmrc.sdecipaasstub.hcp.algebra.{StaffDataAccessAlgebra, StaffRoleDataAccessAlgebra, TeamDataAccessAlgebra}
+import uk.gov.hmrc.sdecipaasstub.hcp.algebra.StaffDataAccessAlgebra
+import uk.gov.hmrc.sdecipaasstub.service.algebra.{StaffRoleServiceAlgebra, TeamServiceAlgebra}
 import uk.gov.hmrc.sdecipaasstub.service.impl.StaffService
 
 import javax.inject.{Inject, Singleton}
 
 @Singleton
 class IOStaffService @Inject() (
-  staffDataAccess:     StaffDataAccessAlgebra[IO],
-  teamDataAccess:      TeamDataAccessAlgebra[IO],
-  staffRoleDataAccess: StaffRoleDataAccessAlgebra[IO]
-) extends StaffService[IO](staffDataAccess, teamDataAccess, staffRoleDataAccess) {}
+  staffDataAccess:  StaffDataAccessAlgebra[IO],
+  teamService:      TeamServiceAlgebra[IO],
+  staffRoleService: StaffRoleServiceAlgebra[IO]
+) extends StaffService[IO](staffDataAccess, teamService, staffRoleService) {}

@@ -7,10 +7,10 @@ TODO 8-(
 
 ## REST API
 
-### Hello
+### Health Check
 The following gets the system up and running, useful for testing etc.
 ```http request
-GET http://localhost:4999/sdec-ipaas-stub/api/v1/hello
+GET http://localhost:4999/ping/ping
 ```
 
 ### Staff and Team
