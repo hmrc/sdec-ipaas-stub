@@ -1,0 +1,14 @@
+info:
+  name: Create Thread
+  type: http
+
+http:
+  method: POST
+  url: "http://localhost:4999/sdec-ipaas-stub/api/v1/thread"
+  body:
+    type: json
+    data: |-
+      {
+        "pid": "1001",
+        "team": "Child_Benefit"
+      }
