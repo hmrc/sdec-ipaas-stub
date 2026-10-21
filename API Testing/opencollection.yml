@@ -1,0 +1,9 @@
+info:
+  name: SDEC API Testing
+  version: "1.0.0"
+  description: Collection for SDEC endpoint testing
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

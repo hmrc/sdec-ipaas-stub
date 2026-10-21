@@ -1,0 +1,7 @@
+info:
+  name: Health Check
+  type: http
+
+http:
+  method: GET
+  url: "http://localhost:4999/ping/ping"

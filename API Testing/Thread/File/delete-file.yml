@@ -1,0 +1,7 @@
+info:
+  name: Delete File
+  type: http
+
+http:
+  method: DELETE
+  url: "http://localhost:4999/sdec-ipaas-stub/api/v1/thread/{{thread-reference}}/file/{{fileId}}"
