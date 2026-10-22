@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.sdecipaasstub.hcp.algebra
 
+import uk.gov.hmrc.sdecipaasstub.dto.ThreadUpdate
 import uk.gov.hmrc.sdecipaasstub.hcp.entity.SdecThread
 import uk.gov.hmrc.sdecipaasstub.hcp.entity.ThreadStatus
 
@@ -26,6 +27,8 @@ trait ThreadDataAccessAlgebra[F[_]] {
   def findByRef(threadRef: String): F[Option[SdecThread]]
 
   def findIdByRef(threadRef: String): F[Option[Long]]
+
+  def updateThreadAndRecipientDetails(thread: ThreadUpdate, threadRef: String, now: LocalDateTime): F[Boolean]
 
   def findByStaffIdAndTeamId(staffId: Long, teamId: Long): F[List[SdecThread]]
 

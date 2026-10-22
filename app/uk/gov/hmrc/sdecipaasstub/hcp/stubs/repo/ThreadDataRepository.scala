@@ -17,9 +17,11 @@
 package uk.gov.hmrc.sdecipaasstub.hcp.stubs.repo
 
 import cats.effect.MonadCancelThrow
+import cats.syntax.applicative.catsSyntaxApplicativeId
 import doobie.*
 import doobie.implicits.*
 import doobie.implicits.javatimedrivernative.{JavaLocalDateMeta, JavaLocalDateTimeMeta}
+import uk.gov.hmrc.sdecipaasstub.dto.ThreadUpdate
 import uk.gov.hmrc.sdecipaasstub.hcp.algebra.ThreadDataAccessAlgebra
 import uk.gov.hmrc.sdecipaasstub.hcp.entity.{SdecThread, ThreadStatus}
 
@@ -30,24 +32,7 @@ class ThreadDataRepository[F[_]: MonadCancelThrow](
 ) extends ThreadDataAccessAlgebra[F]:
 
   override def findByRef(threadRef: String): F[Option[SdecThread]] =
-    sql"""
-          SELECT 
-          id,
-          reference,
-          status,
-          created_by,
-          created_timestamp,
-          last_updated_timestamp,
-          thread_expiry_date,
-          case_reference,
-          recipient_id,
-          email,
-          name,
-          nino,
-          message,
-          required_by,
-          team_id
-          FROM sdec_thread
+    sql"""SELECT * FROM sdec_thread
           WHERE reference = $threadRef
           """
       .query[SdecThread]
@@ -64,6 +49,55 @@ class ThreadDataRepository[F[_]: MonadCancelThrow](
       .query[Long]
       .option
       .transact(xa)
+
+  override def updateThreadAndRecipientDetails(
+    thread:    ThreadUpdate,
+    threadRef: String,
+    now:       LocalDateTime
+  ): F[Boolean] = {
+
+    val updateThreadQuery = sql"""
+          UPDATE sdec_thread
+          SET
+          last_updated_timestamp = $now,
+          status = ThreadStatus.ACTIVE,
+          email = COALESCE(${thread.email}, email),
+          nino = COALESCE(${thread.nino},nino),
+          case_reference = COALESCE(${thread.caseReference}, case_reference),
+          message = COALESCE(${thread.message}, message),
+          required_by = COALESCE(${thread.requestedBy.asLocalDate}, required_by)
+          WHERE reference = $threadRef
+          RETURNING recipient_id
+      """
+      .query[Long]
+      .option
+
+    def updateRecipientQuery(recipientId: Long) = sql"""
+           UPDATE sdec_recipient
+           SET
+           first_name = COALESCE(${thread.firstName}, first_name),
+           last_name = COALESCE(${thread.surname}, last_name),
+           email = COALESCE(${thread.email}, email),
+           phone_number = COALESCE(${thread.mobile}, phone_number),
+           nino = COALESCE(${thread.nino}, nino)
+           WHERE id = $recipientId
+           RETURNING id
+       """.query[Long].option
+
+    val result = for {
+      maybeRecipientId <- updateThreadQuery
+      success          <- maybeRecipientId match {
+                   case Some(recipientId) =>
+                     updateRecipientQuery(recipientId).map {
+                       case Some(_) => true
+                       case None    => false
+                     }
+                   case None => false.pure[ConnectionIO]
+                 }
+    } yield success
+
+    result.transact(xa)
+  }
 
   override def findByStaffIdAndTeamId(staffId: Long, teamId: Long): F[List[SdecThread]] =
     sql"""

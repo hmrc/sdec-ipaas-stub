@@ -46,6 +46,7 @@ CREATE TABLE sdec_thread
     last_updated_timestamp TIMESTAMP     DEFAULT NULL,
     thread_expiry_date     DATE          DEFAULT NULL,
     case_reference         VARCHAR(100)  DEFAULT NULL,
+    request_items          VARCHAR(100)  DEFAULT NULL,
     recipient_id           BIGINT        DEFAULT NULL,
     email                  VARCHAR(255)  DEFAULT NULL,
     name                   VARCHAR(255),
