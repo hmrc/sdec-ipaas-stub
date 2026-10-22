@@ -19,6 +19,7 @@ package uk.gov.hmrc.sdecipaasstub.infrastructure
 import cats.effect.IO
 import cats.effect.unsafe.IORuntime
 import jakarta.inject.{Inject, Singleton}
+import play.api.libs.json.JsValue
 import play.api.mvc.*
 
 import scala.concurrent.ExecutionContext
@@ -34,6 +35,13 @@ class IOActionBuilder @Inject() (
     block: Request[AnyContent] => IO[Result]
   ): Action[AnyContent] =
     Action.async(cc.parsers.default) { request =>
+      block(request).unsafeToFuture()(runtime)
+    }
+
+  def asyncIOJsValue(
+    block: Request[JsValue] => IO[Result]
+  ): Action[JsValue] =
+    Action.async(cc.parsers.json) { request =>
       block(request).unsafeToFuture()(runtime)
     }
 

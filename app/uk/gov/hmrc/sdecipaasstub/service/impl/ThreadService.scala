@@ -19,7 +19,9 @@ package uk.gov.hmrc.sdecipaasstub.service.impl
 import cats.effect.Sync
 import cats.effect.kernel.Sync
 import cats.syntax.all.*
+import uk.gov.hmrc.sdecipaasstub.dto
 import uk.gov.hmrc.sdecipaasstub.dto.*
+import uk.gov.hmrc.sdecipaasstub.dto.{CreateThreadRequest, ThreadResponse, ThreadSummary, ThreadUpdate}
 import uk.gov.hmrc.sdecipaasstub.hcp.algebra.ThreadDataAccessAlgebra
 import uk.gov.hmrc.sdecipaasstub.hcp.entity.ThreadStatus.PENDING
 import uk.gov.hmrc.sdecipaasstub.hcp.entity.{NewSdecRecipient, SdecRecipient, SdecStaff, SdecThread}
@@ -55,6 +57,20 @@ class ThreadService[F[_]: Sync] @Inject() (
              .insert(reference, PENDING, staffId, team.id, now)
              .adaptError { case e => ThreadInsertError(e.getMessage) }
     } yield ThreadResponse(reference)
+
+  override def updateThreadAndRecipient(threadUpdate: ThreadUpdate, threadRef: String): F[ThreadUpdate] =
+    for {
+      _ <- logger.info(s"Update: $threadUpdate")
+      now = LocalDateTime.now(ZoneOffset.UTC)
+      isUpdated <- threadDataAccess.updateThreadAndRecipientDetails(threadUpdate, threadRef, now)
+      result    <-
+        if isUpdated then { Sync[F].pure(threadUpdate) }
+        else {
+          Sync[F].raiseError[ThreadUpdate](
+            new ThreadUpdateError(s"failed to update thread details: $threadRef")
+          )
+        }
+    } yield result
 
   override def findIdByRef(threadRef: String): F[Option[Long]] =
     threadDataAccess.findIdByRef(threadRef)

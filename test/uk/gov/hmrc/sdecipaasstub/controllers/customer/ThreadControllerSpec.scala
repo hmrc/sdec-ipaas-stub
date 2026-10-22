@@ -137,6 +137,9 @@ class ThreadControllerSpec extends PlaySpec {
         teamName: String
       ): IO[List[ThreadSummary]] =
         IO.pure(List.empty)
+
+      override def updateThreadAndRecipient(threadUpdate: ThreadUpdate, threadRef: String): IO[ThreadUpdate] =
+        IO.pure(ThreadUpdate(None, None, None, None, None, None, Nil, "message", RequestedBy(2, 12, 1989)))
     }
 
   private def controllerWith(

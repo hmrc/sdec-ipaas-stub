@@ -38,6 +38,12 @@ class ThreadServiceSpec extends AnyWordSpec with Matchers {
     insertError: Option[Throwable]
   ) extends ThreadDataAccessAlgebra[SyncIO] {
 
+    override def updateThreadAndRecipientDetails(
+      thread:    ThreadUpdate,
+      threadRef: String,
+      updatedAt: LocalDateTime
+    ): SyncIO[Boolean] = SyncIO.pure(true)
+
     override def findByRef(
       threadRef: String
     ): SyncIO[Option[SdecThread]] =
@@ -161,6 +167,7 @@ class ThreadServiceSpec extends AnyWordSpec with Matchers {
       createdTimestamp = Some(LocalDateTime.now),
       lastUpdatedTimestamp = Some(LocalDateTime.now),
       threadExpiryDate = Some(LocalDate.now.plusMonths(1)),
+      requestedItems = None,
       caseReference = Some("CASE-100001"),
       recipientId = Some(1L),
       email = "Email",

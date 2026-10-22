@@ -21,7 +21,8 @@ import jakarta.inject.{Inject, Singleton}
 import play.api.libs.json.*
 import play.api.mvc.*
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
-import uk.gov.hmrc.sdecipaasstub.dto.ErrorMessage
+import uk.gov.hmrc.sdecipaasstub.dto.{ErrorMessage, ThreadUpdate}
+import uk.gov.hmrc.sdecipaasstub.implicits.RequestSyntax.JsonRequestOps
 import uk.gov.hmrc.sdecipaasstub.infrastructure.{ApplicationLogger, AuthenticatedIOActionBuilder, AuthenticatedRequest, JwtUser}
 import uk.gov.hmrc.sdecipaasstub.service.algebra.ThreadServiceAlgebra
 
@@ -32,6 +33,20 @@ class ThreadController @Inject() (
   threadService: ThreadServiceAlgebra[IO]
 ) extends BackendController(cc)
     with ApplicationLogger[IO] {
+
+  def updateThread(threadRef: String): Action[JsValue] =
+    authAction.asyncIOJsValue { request =>
+      request.bodyAs[ThreadUpdate] match {
+        case Right(threadUpdate) => handleUpdateThread(threadUpdate, threadRef)
+        case Left(errorMessage)  => IO.pure(BadRequest(Json.toJson(errorMessage)))
+      }
+    }
+
+  private def handleUpdateThread(threadUpdate: ThreadUpdate, threadRef: String): IO[Result] =
+    threadService
+      .updateThreadAndRecipient(threadUpdate, threadRef)
+      .map(response => Ok(Json.toJson(response)))
+      .recover(_ => InternalServerError)
 
   def getThreadReference(threadId: String): Action[AnyContent] =
     authAction.asyncIO { request =>

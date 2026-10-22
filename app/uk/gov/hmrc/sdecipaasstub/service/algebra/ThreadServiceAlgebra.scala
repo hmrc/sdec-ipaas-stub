@@ -16,12 +16,15 @@
 
 package uk.gov.hmrc.sdecipaasstub.service.algebra
 
+import uk.gov.hmrc.sdecipaasstub.dto.ThreadUpdate
 import uk.gov.hmrc.sdecipaasstub.dto.{CreateThreadRequest, ThreadReference, ThreadResponse, ThreadSummary}
 import uk.gov.hmrc.sdecipaasstub.infrastructure.JwtUser
 
 trait ThreadServiceAlgebra[F[_]] {
 
   def insert(request: CreateThreadRequest): F[ThreadResponse]
+
+  def updateThreadAndRecipient(threadUpdate: ThreadUpdate, threadRef: String): F[ThreadUpdate]
 
   def findIdByRef(threadRef: String): F[Option[Long]]
 
