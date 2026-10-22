@@ -1,16 +1,19 @@
 ### Saves a file uploaded for a thread. Returns { "fileId": 12345 }
-POST http://localhost:4999/sdec-ipaas-stub/api/v1/thread/{thread-reference}
+POST http://localhost:4999/sdec-ipaas-stub/api/v1/thread/THREAD1000AA/file
 Content-Type: application/json
 
 {
   "filename": "file.txt",
-  "fileSize": 1234456,
+  "filesize": 1234456,
   "filetype": "text/txt",
   "objectKey": "/uploads/{thread-ref}/file.txt",
-  "etag": "4f8894d7eae7cc9c686872c5da5b3e98"
+  "etag": "4f8894d7eae7cc9c686872c5da5b3e98",
+  "s3Bucket": "bucket123"
 }
+
 ###
 
 ### DELETEs a file for a thread - replace with actual values from database
 DELETE http://localhost:4999/sdec-ipaas-stub/api/v1/thread/{thread-reference}/file/{fileId}
+
 ###

@@ -20,10 +20,11 @@ import cats.effect.unsafe.implicits.global
 import cats.effect.{IO, Ref}
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
-import uk.gov.hmrc.sdecipaasstub.dto.{Staff, StaffTeam}
-import uk.gov.hmrc.sdecipaasstub.hcp.algebra.{StaffDataAccessAlgebra, StaffRoleDataAccessAlgebra, TeamDataAccessAlgebra}
+import uk.gov.hmrc.sdecipaasstub.dto.{Staff, StaffTeam, Team}
+import uk.gov.hmrc.sdecipaasstub.hcp.algebra.StaffDataAccessAlgebra
 import uk.gov.hmrc.sdecipaasstub.hcp.entity.{SdecStaff, SdecTeam, StaffRole}
 import uk.gov.hmrc.sdecipaasstub.model.SRSEnrollment
+import uk.gov.hmrc.sdecipaasstub.service.algebra.{StaffRoleServiceAlgebra, TeamServiceAlgebra}
 
 class StaffServiceSpec extends AnyWordSpec with Matchers {
 
@@ -39,39 +40,29 @@ class StaffServiceSpec extends AnyWordSpec with Matchers {
       insertedStaff.update(_ :+ staff).as(100L)
   }
 
-  final class StubTeamDataAccess(
+  final class StubTeamService(
     existingTeam:  Option[SdecTeam],
     insertedTeams: Ref[IO, List[(String, Boolean)]]
-  ) extends TeamDataAccessAlgebra[IO] {
+  ) extends TeamServiceAlgebra[IO] {
 
-    override def getByTeamName(team: String): IO[Option[SdecTeam]] =
-      IO.pure(existingTeam)
+    override def getByTeamName(team: String): IO[Option[Team]] =
+      IO.pure(existingTeam.map(entity => Team.fromEntity(entity)))
 
-    override def insert(
-      team:        String,
-      isTaskBAsed: Boolean
-    ): IO[Long] =
-      insertedTeams.update(_ :+ (team, isTaskBAsed)).as(200L)
+    override def insert(team: String, isTaskBased: Boolean): IO[Long] =
+      insertedTeams.update(_ :+ (team, isTaskBased)).as(200L)
   }
 
-  final class StubStaffRoleDataAccess(
+  final class StubStaffRoleService(
     assignments: Ref[IO, List[(Long, Long, SRSEnrollment)]]
-  ) extends StaffRoleDataAccessAlgebra[IO] {
+  ) extends StaffRoleServiceAlgebra[IO] {
 
-    override def findByStaffAndTeam(
-      staffId: Long,
-      teamId:  Long
-    ): IO[StaffRole] =
+    override def findByStaffAndTeam(staffId: Long, teamId: Long): IO[StaffRole] =
       IO.raiseError(new UnsupportedOperationException("Not used"))
 
-    override def insert(
-      staffId:   Long,
-      teamId:    Long,
-      enrolment: SRSEnrollment
-    ): IO[Long] =
+    override def insert(staffId: Long, teamId: Long, enrolment: SRSEnrollment): IO[Long] =
       assignments.update(_ :+ (staffId, teamId, enrolment)).as(1L)
 
-    override def delete(staffId: Long, teamId: Long): IO[Int] =
+    override def delete(staffId: Long, teamId: Long): IO[Long] =
       IO.pure(0)
   }
 
@@ -93,16 +84,13 @@ class StaffServiceSpec extends AnyWordSpec with Matchers {
         staffDataAccess =
           new StubStaffDataAccess(None, insertedStaff)
 
-        teamDataAccess =
-          new StubTeamDataAccess(None, insertedTeams)
-
-        staffRoleDataAccess =
-          new StubStaffRoleDataAccess(assignments)
+        teamService      = new StubTeamService(None, insertedTeams)
+        staffRoleService = new StubStaffRoleService(assignments)
 
         service = new StaffService[IO](
                     staffDataAccess,
-                    teamDataAccess,
-                    staffRoleDataAccess
+                    teamService,
+                    staffRoleService
                   )
 
         enrollment = SRSEnrollment.extractFromEnrollment(staff.srs)

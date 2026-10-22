@@ -18,7 +18,7 @@ package uk.gov.hmrc.sdecipaasstub.dto
 
 import play.api.libs.json.{Json, OFormat}
 
-case class Message(message: String)
+final case class Message(message: String)
 
 object Message:
   given format: OFormat[Message] = Json.format[Message]

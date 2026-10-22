@@ -18,7 +18,7 @@ package uk.gov.hmrc.sdecipaasstub.dto
 
 import play.api.libs.json.{Json, OFormat}
 
-case class StaffTeams(staffId: Long, teamIds: Seq[Long])
+final case class StaffTeams(staffId: Long, teamIds: Seq[Long])
 
 object StaffTeams:
 

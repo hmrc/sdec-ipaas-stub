@@ -18,7 +18,7 @@ package uk.gov.hmrc.sdecipaasstub.dto
 
 import play.api.libs.json.{Json, OFormat}
 
-case class StaffTeam(staffId: Long, teamId: Long)
+final case class StaffTeam(staffId: Long, teamId: Long)
 
 object StaffTeam {
   given format: OFormat[StaffTeam] = Json.format[StaffTeam]

@@ -22,5 +22,5 @@ trait TeamDataAccessAlgebra[F[_]] {
 
   def getByTeamName(team: String): F[Option[SdecTeam]]
 
-  def insert(team: String, isTaskBAsed: Boolean = false): F[Long]
+  def insert(team: String, isTaskBased: Boolean = false): F[Long]
 }

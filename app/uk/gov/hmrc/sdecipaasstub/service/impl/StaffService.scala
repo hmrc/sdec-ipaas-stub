@@ -16,22 +16,21 @@
 
 package uk.gov.hmrc.sdecipaasstub.service.impl
 
-import cats.Monad
 import cats.effect.Sync
 import cats.syntax.all.*
 import uk.gov.hmrc.sdecipaasstub.dto.{Staff, StaffTeam, StaffTeams, StaffUpdate}
-import uk.gov.hmrc.sdecipaasstub.hcp.algebra.{StaffDataAccessAlgebra, StaffRoleDataAccessAlgebra, TeamDataAccessAlgebra}
+import uk.gov.hmrc.sdecipaasstub.hcp.algebra.StaffDataAccessAlgebra
 import uk.gov.hmrc.sdecipaasstub.infrastructure.ApplicationLogger
 import uk.gov.hmrc.sdecipaasstub.model.SRSEnrollment
-import uk.gov.hmrc.sdecipaasstub.service.algebra.StaffServiceAlgebra
+import uk.gov.hmrc.sdecipaasstub.service.algebra.{StaffRoleServiceAlgebra, StaffServiceAlgebra, TeamServiceAlgebra}
 import uk.gov.hmrc.sdecipaasstub.service.errors.StaffInsertError
 
 import javax.inject.Inject
 
-class StaffService[F[_]: Monad: Sync] @Inject() (
-  staffDataAccess:     StaffDataAccessAlgebra[F],
-  teamDataAccess:      TeamDataAccessAlgebra[F],
-  staffRoleDataAccess: StaffRoleDataAccessAlgebra[F]
+class StaffService[F[_]: Sync] @Inject() (
+  staffDataAccess:  StaffDataAccessAlgebra[F],
+  teamService:      TeamServiceAlgebra[F],
+  staffRoleService: StaffRoleServiceAlgebra[F]
 ) extends StaffServiceAlgebra[F]
     with ApplicationLogger[F] {
 
@@ -44,7 +43,7 @@ class StaffService[F[_]: Monad: Sync] @Inject() (
                   case Some(s) => s.id
                   case None    => 0L
                 }
-      team <- teamDataAccess.getByTeamName(enrolment.team)
+      team <- teamService.getByTeamName(enrolment.team)
       teamId = team match {
                  case Some(t) => t.id
                  case None    => 0L
@@ -76,7 +75,7 @@ class StaffService[F[_]: Monad: Sync] @Inject() (
 
   private def checkAndInsertForTeams(staffId: Long, staff: Staff, enrollment: SRSEnrollment): F[StaffTeam] =
     for {
-      team <- teamDataAccess.getByTeamName(enrollment.team)
+      team <- teamService.getByTeamName(enrollment.team)
       teamId = team match {
                  case Some(t) => t.id
                  case None    => 0L
@@ -99,19 +98,19 @@ class StaffService[F[_]: Monad: Sync] @Inject() (
   private def saveStaffAndAssign(staff: Staff, teamId: Long, enrollment: SRSEnrollment): F[StaffTeam] =
     for {
       staffId <- staffDataAccess.insert(staff)
-      _       <- staffRoleDataAccess.insert(staffId, teamId, enrollment)
+      _       <- staffRoleService.insert(staffId, teamId, enrollment)
     } yield StaffTeam(staffId, teamId)
 
   private def saveTeamAndAssign(staffId: Long, enrollment: SRSEnrollment): F[StaffTeam] =
     for {
-      teamId <- teamDataAccess.insert(enrollment.team)
-      _      <- staffRoleDataAccess.insert(staffId, teamId, enrollment)
+      teamId <- teamService.insert(enrollment.team)
+      _      <- staffRoleService.insert(staffId, teamId, enrollment)
     } yield StaffTeam(staffId, teamId)
 
   private def saveStaffAndTeam(staff: Staff, enrollment: SRSEnrollment): F[StaffTeam] =
     for {
-      teamId  <- teamDataAccess.insert(enrollment.team)
+      teamId  <- teamService.insert(enrollment.team)
       staffId <- staffDataAccess.insert(staff)
-      _       <- staffRoleDataAccess.insert(staffId, teamId, enrollment)
+      _       <- staffRoleService.insert(staffId, teamId, enrollment)
     } yield StaffTeam(staffId, teamId)
 }
