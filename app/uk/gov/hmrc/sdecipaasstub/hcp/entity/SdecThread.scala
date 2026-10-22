@@ -18,7 +18,7 @@ package uk.gov.hmrc.sdecipaasstub.hcp.entity
 
 import java.time.{LocalDate, LocalDateTime}
 
-case class SdecThread(
+final case class SdecThread(
   id:                   Long,
   reference:            String,
   status:               ThreadStatus,

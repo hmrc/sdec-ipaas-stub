@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.sdecipaasstub.hcp.entity
 
-case class SdecTeam(
+final case class SdecTeam(
   id:          Long,
   srsName:     String,
   isTaskBased: Boolean = false

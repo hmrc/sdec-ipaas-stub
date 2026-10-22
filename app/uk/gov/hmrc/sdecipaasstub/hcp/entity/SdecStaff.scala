@@ -16,4 +16,4 @@
 
 package uk.gov.hmrc.sdecipaasstub.hcp.entity
 
-case class SdecStaff(id: Long, pid: String, name: String, email: Option[String])
+final case class SdecStaff(id: Long, pid: String, name: String, email: Option[String])

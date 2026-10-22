@@ -19,7 +19,7 @@ package uk.gov.hmrc.sdecipaasstub.dto
 import play.api.libs.json.{JsResult, JsValue, Json, OFormat}
 import uk.gov.hmrc.sdecipaasstub.hcp.entity.SdecTeam
 
-case class Team(
+final case class Team(
   id:          Long,
   srsName:     String,
   isTaskBased: Boolean = false

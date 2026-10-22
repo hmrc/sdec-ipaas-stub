@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.sdecipaasstub.hcp.entity
 
-case class StaffRole(
+final case class StaffRole(
   id:       Long,
   staffId:  Long,
   teamId:   Long,

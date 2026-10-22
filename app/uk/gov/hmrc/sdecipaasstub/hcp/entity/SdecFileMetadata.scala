@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.sdecipaasstub.hcp.entity
 
-case class SdecFileMetadata(
+final case class SdecFileMetadata(
   id:       Long,
   threadId: Long,
   filename: String,

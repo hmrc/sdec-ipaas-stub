@@ -18,7 +18,7 @@ package uk.gov.hmrc.sdecipaasstub.model
 
 import uk.gov.hmrc.sdecipaasstub.dto.TeamRole
 
-case class SRSEnrollment(
+final case class SRSEnrollment(
   sdec: String,
   team: String,
   role: String

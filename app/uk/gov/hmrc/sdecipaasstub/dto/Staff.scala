@@ -18,7 +18,7 @@ package uk.gov.hmrc.sdecipaasstub.dto
 
 import play.api.libs.json.*
 
-case class Staff(
+final case class Staff(
   pid:   String,
   name:  String,
   email: String,
