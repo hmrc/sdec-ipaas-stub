@@ -14,6 +14,11 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.sdecipaasstub.service.errors
+package uk.gov.hmrc.sdecipaasstub.dto
 
-class StaffRoleInsertError(msg: String) extends RuntimeException
+import play.api.libs.json.*
+
+case class ThreadResponse(threadReference: String)
+
+object ThreadResponse:
+  given format: OFormat[ThreadResponse] = Json.format[ThreadResponse]

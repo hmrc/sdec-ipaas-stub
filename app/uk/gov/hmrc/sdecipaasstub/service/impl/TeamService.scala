@@ -22,7 +22,7 @@ import uk.gov.hmrc.sdecipaasstub.dto.Team
 import uk.gov.hmrc.sdecipaasstub.hcp.algebra.TeamDataAccessAlgebra
 import uk.gov.hmrc.sdecipaasstub.infrastructure.ApplicationLogger
 import uk.gov.hmrc.sdecipaasstub.service.algebra.TeamServiceAlgebra
-import uk.gov.hmrc.sdecipaasstub.service.errors.{TeamFindError, TeamInsertError}
+import uk.gov.hmrc.sdecipaasstub.service.errors.{TeamInsertError, TeamLookupError}
 
 import javax.inject.Inject
 
@@ -38,7 +38,7 @@ class TeamService[F[_]: Sync] @Inject() (
     } yield team.map(entity => Team.fromEntity(entity))
   }.recoverWith { e =>
     logger.warn(s"Get By Team Name failed with ${e.getMessage}")
-    throw new TeamFindError(e.getMessage)
+    throw new TeamLookupError(e.getMessage)
   }
 
   override def insert(team: String, isTaskBased: Boolean): F[Long] = {
