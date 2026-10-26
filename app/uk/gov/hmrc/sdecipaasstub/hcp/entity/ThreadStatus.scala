@@ -20,7 +20,6 @@ import doobie.util.meta.Meta
 import play.api.libs.json.*
 
 enum ThreadStatus {
-  case DRAFT
   case PENDING
   case ACTIVE
   case CLOSED

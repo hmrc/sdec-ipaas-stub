@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.sdecipaasstub.controllers
+package uk.gov.hmrc.sdecipaasstub.controllers.staff
 
 import cats.effect.IO
 import org.apache.pekko.actor.ActorSystem
@@ -23,6 +23,7 @@ import org.scalatestplus.play.PlaySpec
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
+import uk.gov.hmrc.sdecipaasstub.controllers.staff.ThreadController
 import uk.gov.hmrc.sdecipaasstub.dto.{CreateThreadRequest, ThreadResponse}
 import uk.gov.hmrc.sdecipaasstub.infrastructure.IOActionBuilder
 import uk.gov.hmrc.sdecipaasstub.service.algebra.ThreadServiceAlgebra
@@ -49,7 +50,7 @@ class ThreadControllerSpec extends PlaySpec {
 
   private lazy val threadService = new ThreadServiceAlgebra[IO] {
 
-    override def upsert(request: CreateThreadRequest): IO[ThreadResponse] =
+    override def insert(request: CreateThreadRequest): IO[ThreadResponse] =
       if request.pid == unknownPid then IO.raiseError(new StaffLookupError(s"No staff found for pid ${request.pid}"))
       else if request.team == unknownTeam then
         IO.raiseError(new TeamLookupError(s"No team found with name ${request.team}"))

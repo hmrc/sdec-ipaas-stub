@@ -24,6 +24,7 @@ import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import uk.gov.hmrc.sdecipaasstub.dto.{Staff, StaffTeam, StaffTeams, StaffUpdate}
+import uk.gov.hmrc.sdecipaasstub.hcp.entity.SdecStaff
 import uk.gov.hmrc.sdecipaasstub.infrastructure.IOActionBuilder
 import uk.gov.hmrc.sdecipaasstub.service.algebra.StaffServiceAlgebra
 
@@ -49,6 +50,9 @@ class StaffControllerSpec extends PlaySpec {
 
     override def upsert(staffUpdate: StaffUpdate): IO[StaffTeams] =
       IO.pure(StaffTeams(1L, Seq(1L)))
+
+    override def findByPid(pid: String): IO[SdecStaff] =
+      IO.raiseError(UnsupportedOperationException("Not used"))
   }
 
   val controller = new StaffController(cc, actionBuilder, staffService)

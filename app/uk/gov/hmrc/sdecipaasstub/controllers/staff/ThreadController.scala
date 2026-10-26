@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.sdecipaasstub.controllers
+package uk.gov.hmrc.sdecipaasstub.controllers.staff
 
 import cats.effect.IO
 import jakarta.inject.{Inject, Singleton}
@@ -51,7 +51,7 @@ class ThreadController @Inject() (
     jsResult match {
       case JsSuccess(createRequest, _) =>
         threadService
-          .upsert(createRequest)
+          .insert(createRequest)
           .map(response => Ok(Json.toJson(response)))
           .recoverWith {
             case e: StaffLookupError => getBadRequest(Seq(e.getMessage))

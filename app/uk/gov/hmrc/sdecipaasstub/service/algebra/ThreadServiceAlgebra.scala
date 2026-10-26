@@ -20,7 +20,7 @@ import uk.gov.hmrc.sdecipaasstub.dto.{CreateThreadRequest, ThreadResponse}
 
 trait ThreadServiceAlgebra[F[_]] {
 
-  def upsert(request: CreateThreadRequest): F[ThreadResponse]
+  def insert(request: CreateThreadRequest): F[ThreadResponse]
 
   def findIdByRef(threadRef: String): F[Option[Long]]
 

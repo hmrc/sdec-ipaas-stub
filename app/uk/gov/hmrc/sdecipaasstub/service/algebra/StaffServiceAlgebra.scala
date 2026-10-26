@@ -17,10 +17,13 @@
 package uk.gov.hmrc.sdecipaasstub.service.algebra
 
 import uk.gov.hmrc.sdecipaasstub.dto.{Staff, StaffTeam, StaffTeams, StaffUpdate}
+import uk.gov.hmrc.sdecipaasstub.hcp.entity.SdecStaff
 
 trait StaffServiceAlgebra[F[_]] {
 
   def upsert(staff: Staff): F[StaffTeam]
 
   def upsert(staffUpdate: StaffUpdate): F[StaffTeams]
+
+  def findByPid(pid: String): F[SdecStaff]
 }

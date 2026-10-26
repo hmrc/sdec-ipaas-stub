@@ -41,6 +41,9 @@ class TeamService[F[_]: Sync] @Inject() (
     throw new TeamLookupError(e.getMessage)
   }
 
+  override def getTeam(team: String): F[Team] =
+    getByTeamName(team).flatMap(_.liftTo[F](TeamLookupError(s"No team found with name $team")))
+
   override def insert(team: String, isTaskBased: Boolean): F[Long] = {
     for {
       _      <- logger.info(s"Team Insert: $team, $isTaskBased")
