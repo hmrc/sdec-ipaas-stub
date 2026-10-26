@@ -44,6 +44,20 @@ class StaffDataRepository[F[_]: MonadCancelThrow](
       .option
       .transact(xa)
 
+  override def findById(id: Long): F[Option[SdecStaff]] =
+    sql"""
+      SELECT
+        id,
+        pid,
+        name,
+        email
+      FROM sdec_staff
+      WHERE id = $id
+    """
+      .query[SdecStaff]
+      .option
+      .transact(xa)
+      
   override def insert(staff: Staff): F[Long] =
     sql"""
         INSERT INTO sdec_staff (

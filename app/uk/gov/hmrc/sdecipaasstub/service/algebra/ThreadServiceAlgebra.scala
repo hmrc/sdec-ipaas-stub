@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.sdecipaasstub.service.algebra
 
-import uk.gov.hmrc.sdecipaasstub.dto.Thread
+import uk.gov.hmrc.sdecipaasstub.dto.{Thread, ThreadReference}
 
 trait ThreadServiceAlgebra[F[_]] {
 
@@ -24,4 +24,5 @@ trait ThreadServiceAlgebra[F[_]] {
 
   def findIdByRef(threadRef: String): F[Option[Long]]
 
+  def getThreadInfoByThreadId(threadId: String): F[ThreadReference]
 }

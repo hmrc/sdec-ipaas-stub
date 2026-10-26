@@ -43,7 +43,7 @@ class ThreadDataRepository[F[_]: MonadCancelThrow](
           nino,
           message,
           required_by,
-          team_id,
+          team_id
           FROM sdec_thread
           WHERE reference = $threadRef
           """
