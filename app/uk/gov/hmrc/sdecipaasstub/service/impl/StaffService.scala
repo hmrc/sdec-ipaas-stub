@@ -20,6 +20,7 @@ import cats.effect.Sync
 import cats.syntax.all.*
 import uk.gov.hmrc.sdecipaasstub.dto.{Staff, StaffTeam, StaffTeams, StaffUpdate}
 import uk.gov.hmrc.sdecipaasstub.hcp.algebra.StaffDataAccessAlgebra
+import uk.gov.hmrc.sdecipaasstub.hcp.entity.SdecStaff
 import uk.gov.hmrc.sdecipaasstub.infrastructure.ApplicationLogger
 import uk.gov.hmrc.sdecipaasstub.model.SRSEnrollment
 import uk.gov.hmrc.sdecipaasstub.service.algebra.{StaffRoleServiceAlgebra, StaffServiceAlgebra, TeamServiceAlgebra}
@@ -113,4 +114,8 @@ class StaffService[F[_]: Sync] @Inject() (
       staffId <- staffDataAccess.insert(staff)
       _       <- staffRoleService.insert(staffId, teamId, enrollment)
     } yield StaffTeam(staffId, teamId)
+
+  override def findByPid(pid: String): F[Option[SdecStaff]] =
+    logger.info(s"Finding Staff by PID $pid") *>
+      staffDataAccess.findByPID(pid)
 }

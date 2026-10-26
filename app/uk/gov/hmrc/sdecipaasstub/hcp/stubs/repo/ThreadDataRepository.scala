@@ -40,10 +40,11 @@ class ThreadDataRepository[F[_]: MonadCancelThrow](
           case_reference,
           recipient_id,
           email,
+          name,
           nino,
           message,
           required_by,
-          team_id,
+          team_id
           FROM sdec_thread
           WHERE reference = $threadRef
           """
@@ -60,4 +61,30 @@ class ThreadDataRepository[F[_]: MonadCancelThrow](
         """
       .query[Long]
       .option
+      .transact(xa)
+
+  override def findByStaffIdAndTeamId(staffId: Long, teamId: Long): F[List[SdecThread]] =
+    sql"""
+              SELECT
+              id,
+              reference,
+              status,
+              created_by,
+              created_timestamp,
+              last_updated_timestamp,
+              thread_expiry_date,
+              case_reference,
+              recipient_id,
+              email,
+              name,
+              nino,
+              message,
+              required_by,
+              team_id
+              FROM sdec_thread
+              WHERE created_by = $staffId
+              AND team_id = $teamId
+              """
+      .query[SdecThread]
+      .to[List]
       .transact(xa)

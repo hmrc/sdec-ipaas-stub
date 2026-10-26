@@ -17,16 +17,20 @@
 package uk.gov.hmrc.sdecipaasstub.service.impl
 
 import cats.effect.Sync
-import cats.syntax.all.*
+import cats.implicits.*
 import uk.gov.hmrc.sdecipaasstub.dto
+import uk.gov.hmrc.sdecipaasstub.dto.ThreadSummary
 import uk.gov.hmrc.sdecipaasstub.hcp.algebra.ThreadDataAccessAlgebra
 import uk.gov.hmrc.sdecipaasstub.infrastructure.ApplicationLogger
-import uk.gov.hmrc.sdecipaasstub.service.algebra.ThreadServiceAlgebra
+import uk.gov.hmrc.sdecipaasstub.service.algebra.{StaffServiceAlgebra, TeamServiceAlgebra, ThreadServiceAlgebra}
+import uk.gov.hmrc.sdecipaasstub.service.errors.{StaffFindError, TeamFindError}
 
 import javax.inject.Inject
 
 class ThreadService[F[_]: Sync] @Inject() (
-  threadDataAccess: ThreadDataAccessAlgebra[F]
+  threadDataAccess: ThreadDataAccessAlgebra[F],
+  teamService:      TeamServiceAlgebra[F],
+  staffService:     StaffServiceAlgebra[F]
 ) extends ThreadServiceAlgebra[F]
     with ApplicationLogger[F] {
 
@@ -38,4 +42,24 @@ class ThreadService[F[_]: Sync] @Inject() (
       threadId <- threadDataAccess.findIdByRef(threadRef)
     } yield threadId
 
+  override def findThreadsForWorkspace(pid: String, teamName: String): F[List[ThreadSummary]] =
+    for {
+      _    <- logger.info(s"Getting workspace threads for user $pid - $teamName")
+      team <- teamService.getByTeamName(teamName)
+      teamId: Long <- team match {
+                        case Some(value) => value.id.pure[F]
+                        case None        =>
+                          logger.warn(s"Team Name does not exist in database: $teamName") *>
+                            Sync[F].raiseError[Long](new TeamFindError(s""))
+                      }
+      staff <- staffService.findByPid(pid)
+      staffId: Long <- staff match {
+                         case Some(value) => value.id.pure[F]
+                         case None        =>
+                           logger.warn(s"Staff not found for $pid") *>
+                             Sync[F].raiseError[Long](StaffFindError(s"Staff with PID $pid not found"))
+                       }
+      threads <- threadDataAccess.findByStaffIdAndTeamId(staffId, teamId)
+      _       <- logger.info(s"Found following threads in database: $threads")
+    } yield threads.map(ThreadSummary.fromEntity)
 }

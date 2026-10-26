@@ -16,4 +16,10 @@
 
 package uk.gov.hmrc.sdecipaasstub.service.errors
 
-class StaffInsertError(msg: String) extends RuntimeException
+sealed abstract class StaffError(message: String) extends RuntimeException(message)
+
+final case class StaffFindError(message: String) extends StaffError(message)
+
+final case class StaffInsertError(message: String) extends StaffError(message)
+
+final case class StaffRoleInsertError(message: String) extends StaffError(message)

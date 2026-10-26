@@ -4,3 +4,4 @@ POST        /api/v1/staff                         uk.gov.hmrc.sdecipaasstub.cont
 PUT         /api/v1/staff                         uk.gov.hmrc.sdecipaasstub.controllers.StaffController.updateOrInsert()
 
 POST        /api/v1/thread/:threadRef/file        uk.gov.hmrc.sdecipaasstub.controllers.FileController.saveFile(threadRef: String)
+GET /api/v1/thread/pid/:pid/team/:team          uk.gov.hmrc.sdecipaasstub.controllers.staff.ThreadController.getThreadsForWorkspace(pid: String, team: String)

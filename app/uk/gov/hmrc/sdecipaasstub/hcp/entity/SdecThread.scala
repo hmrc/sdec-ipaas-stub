@@ -28,9 +28,10 @@ final case class SdecThread(
   threadExpiryDate:     Option[LocalDate],
   caseReference:        Option[String],
   recipientId:          Option[Long],
-  email:                Option[Long],
-  nino:                 Option[Long],
+  email:                String,
+  name:                 String,
+  nino:                 Option[String],
   message:              Option[String],
-  requiredBy:           Option[String],
+  requiredBy:           Option[LocalDate],
   teamId:               Long
 )

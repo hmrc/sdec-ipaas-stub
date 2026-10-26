@@ -24,4 +24,6 @@ trait ThreadDataAccessAlgebra[F[_]] {
 
   def findIdByRef(threadRef: String): F[Option[Long]]
 
+  def findByStaffIdAndTeamId(staffId: Long, teamId: Long): F[List[SdecThread]]
+
 }
