@@ -1,0 +1,61 @@
+info:
+  name: Test File Upload 1M
+  type: http
+  seq: 2
+
+http:
+  method: POST
+  url: https://api.hmrc.qa.le.gb.cam.boomi.com/ws/rest/files/v1/upload?thread=ABCDEFGH2345
+  headers:
+    - name: Content-Type
+      value: application/pdf
+    - name: X-File-Name
+      value: test-1m.pdf
+    - name: X-Correlation-Id
+      value: batch-002
+    - name: X-Source-System
+      value: SDEC
+    - name: Authorization
+      value: Bearer {{ACCESS_TOKEN}}
+  params:
+    - name: thread
+      value: ABCDEFGH2345
+      type: query
+  body:
+    type: file
+    data:
+      - filePath: files/test-1m.pdf
+        contentType: application/pdf
+        selected: true
+
+runtime:
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "201"
+    - expression: res.body
+      operator: isJson
+    - expression: res.body.fileId
+      operator: eq
+      value: batch-002
+    - expression: res.body.fileName
+      operator: startsWith
+      value: SDEC_
+    - expression: res.body.fileName
+      operator: endsWith
+      value: _batch-002_test-1m.pdf
+    - expression: res.body.path
+      operator: eq
+      value: /staging/ABCDEFGH2345/
+    - expression: res.body.sizeBytes
+      operator: isNumber
+    - expression: res.body.status
+      operator: eq
+      value: DELIVERED_TO_MFT
+
+settings:
+  encodeUrl: false
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

@@ -1,0 +1,15 @@
+name: QA
+variables:
+  - name: ENVIRONMENT
+    value: qa
+  - name: THREAD_REFERENCE
+    value: ""
+  - secret: true
+    name: BOOMI_CLIENT_SECRET
+  - secret: true
+    name: BOOMI_CLIENT_ID
+  - name: ACCESS_TOKEN
+    value: ""
+    transient: true
+  - name: MFT_FILE_ID
+    value: ""

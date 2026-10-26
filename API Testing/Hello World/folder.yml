@@ -1,0 +1,15 @@
+info:
+  name: Hello World
+  type: folder
+  seq: 5
+
+request:
+  auth: none
+
+runtime:
+  scripts:
+    - type: before-request
+      code: |-
+        if (!bru.getEnvVar(ACCESS_TOKEN)) {
+          throw new Error('Bearer Token not set. Run the Bearer Token auth request');
+        }

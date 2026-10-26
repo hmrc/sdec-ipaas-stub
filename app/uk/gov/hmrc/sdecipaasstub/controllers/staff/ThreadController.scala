@@ -52,7 +52,7 @@ class ThreadController @Inject() (
       case JsSuccess(createRequest, _) =>
         threadService
           .insert(createRequest)
-          .map(response => Ok(Json.toJson(response)))
+          .map(response => Created(Json.toJson(response)))
           .recoverWith {
             case e: StaffLookupError => getBadRequest(Seq(e.getMessage))
             case e: TeamLookupError  => getBadRequest(Seq(e.getMessage))

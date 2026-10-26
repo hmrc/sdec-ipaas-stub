@@ -1,0 +1,45 @@
+info:
+  name: Register MFT File
+  type: http
+  seq: 3
+
+http:
+  method: POST
+  url: http://localhost:4999/sdec-ipaas-stub/api/v1/thread/{{THREAD_REFERENCE}}/file
+  headers:
+    - name: Content-Type
+      value: application/json
+  body:
+    type: json
+    data: |-
+      {
+        "filename": "test-256k.pdf",
+        "s3Bucket": "mft",
+        "filesize": 262144,
+        "filetype": "application/pdf",
+        "objectKey": "/staging/{{THREAD_REFERENCE}}/",
+        "etag": "{{MFT_FILE_ID}}"
+      }
+  auth: none
+
+runtime:
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "200"
+    - expression: res.headers['content-type']
+      operator: contains
+      value: application/json
+    - expression: res.body.filename
+      operator: eq
+      value: test-256k.pdf
+    - expression: res.body.objectKey
+      operator: contains
+      value: "{{THREAD_REFERENCE}}"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

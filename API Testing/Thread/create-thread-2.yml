@@ -1,0 +1,45 @@
+info:
+  name: Create Thread 2
+  type: http
+  seq: 2
+
+http:
+  method: POST
+  url: http://localhost:4999/sdec-ipaas-stub/api/v1/thread
+  headers:
+    - name: Content-Type
+      value: application/json
+  body:
+    type: json
+    data: |-
+      {
+        "pid": "1001",
+        "team": "Child_Benefit"
+      }
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        if (res.status === 201) {
+          bru.setVar("THREAD_REFERENCE", res.body.threadReference);
+        }
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "201"
+    - expression: res.headers['content-type']
+      operator: contains
+      value: application/json
+    - expression: res.body.threadReference
+      operator: isDefined
+    - expression: res.body.threadReference.length
+      operator: eq
+      value: "12"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: true

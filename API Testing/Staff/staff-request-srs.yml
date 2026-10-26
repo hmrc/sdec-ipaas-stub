@@ -1,10 +1,11 @@
 info:
   name: Create or Update Staff SRS
   type: http
+  seq: 1
 
 http:
   method: POST
-  url: "http://localhost:4999/sdec-ipaas-stub/api/v1/staff"
+  url: http://localhost:4999/sdec-ipaas-stub/api/v1/staff
   body:
     type: json
     data: |-
@@ -14,3 +15,10 @@ http:
         "email": "j.tester@test.com",
         "srs": "SDEC_Child_Benefit_Manager"
       }
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: true

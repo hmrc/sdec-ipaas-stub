@@ -19,9 +19,7 @@ lazy val microservice = Project("sdec-ipaas-stub", file("."))
     // https://www.scala-lang.org/2021/01/12/configuring-and-suppressing-warnings.html
     // suppress warnings in generated routes files
     scalacOptions += "-Wconf:src=routes/.*:s",
-    compilerSettings
-  )
-  .settings(
+    compilerSettings,
     Compile / unmanagedResourceDirectories += baseDirectory.value / "resources",
     PlayKeys.playDefaultPort := 4999,
     Test / unmanagedResourceDirectories += baseDirectory.value / "conf"
@@ -39,7 +37,6 @@ lazy val it = project
 inThisBuild(
   List(
     semanticdbEnabled := true,
-    semanticdbVersion := scalafixSemanticdb.revision
   )
 )
 

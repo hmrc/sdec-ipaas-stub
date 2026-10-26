@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.sdecipaasstub.service.impl
 
-import cats.Monad
 import cats.effect.kernel.Sync
 import cats.syntax.all.*
 import uk.gov.hmrc.sdecipaasstub.dto.{CreateThreadRequest, ThreadResponse}
@@ -30,7 +29,7 @@ import java.time.{LocalDateTime, ZoneOffset}
 import javax.inject.Inject
 import scala.util.Random
 
-class ThreadService[F[_]: Monad: Sync] @Inject() (
+class ThreadService[F[_]: Sync] @Inject() (
   threadDataAccess: ThreadDataAccessAlgebra[F],
   teamService:      TeamServiceAlgebra[F],
   staffService:     StaffServiceAlgebra[F]

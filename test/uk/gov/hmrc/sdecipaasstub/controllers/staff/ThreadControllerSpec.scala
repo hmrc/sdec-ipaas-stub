@@ -107,7 +107,7 @@ class ThreadControllerSpec extends PlaySpec {
 
       val result = call(controller.insert(), request)
 
-      status(result) mustBe OK
+      status(result) mustBe CREATED
       contentAsJson(result) mustBe Json.toJson(ThreadResponse(reference))
     }
   }

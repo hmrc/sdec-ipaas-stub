@@ -1,0 +1,46 @@
+info:
+  name: Generate Access Token
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: https://api.hmrc.qa.le.gb.cam.boomi.com/token
+  body:
+    type: form-urlencoded
+    data:
+      - name: grant_type
+        value: client_credentials
+      - name: client_id
+        value: "{{BOOMI_CLIENT_ID}}"
+      - name: client_secret
+        value: "{{BOOMI_CLIENT_SECRET}}"
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        if (res.status === 200) {
+          const accessToken = `${res.body.access_token}`;
+          bru.setEnvVar('ACCESS_TOKEN', accessToken);
+        } else {
+          throw new Error('Authentication failed: ' + res.status);
+        }
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "200"
+    - expression: res.body
+      operator: isJson
+    - expression: res.body.access_token
+      operator: isNotEmpty
+    - expression: res.body.token_type
+      operator: eq
+      value: bearer
+
+settings:
+  encodeUrl: false
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

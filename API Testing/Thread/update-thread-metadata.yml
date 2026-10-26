@@ -1,10 +1,11 @@
 info:
   name: Update Thread Metadata
   type: http
+  seq: 3
 
 http:
   method: POST
-  url: "http://localhost:4999/sdec-ipaas-stub/api/v1/thread/{{thread-reference}}"
+  url: http://localhost:4999/sdec-ipaas-stub/api/v1/thread/{{THREAD_REFERENCE}}
   body:
     type: json
     data: |-
@@ -26,3 +27,10 @@ http:
           "year": 2027
         }
       }
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: true

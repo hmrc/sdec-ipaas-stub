@@ -35,3 +35,5 @@ test-result
 tmp
 .vscode/
 .bsp
+*.pdf
+*.docx

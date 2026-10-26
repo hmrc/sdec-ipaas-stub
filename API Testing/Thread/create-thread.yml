@@ -1,10 +1,11 @@
 info:
   name: Create Thread
   type: http
+  seq: 1
 
 http:
   method: POST
-  url: "http://localhost:4999/sdec-ipaas-stub/api/v1/thread"
+  url: http://localhost:4999/sdec-ipaas-stub/api/v1/thread
   body:
     type: json
     data: |-
@@ -12,3 +13,30 @@ http:
         "pid": "1001",
         "team": "Child_Benefit"
       }
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        if (res.status === 201) {
+          bru.setVar("THREAD_REFERENCE", res.body.threadReference);
+        }
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "201"
+    - expression: res.headers['content-type']
+      operator: contains
+      value: application/json
+    - expression: res.body.threadReference
+      operator: isDefined
+    - expression: res.body.threadReference.length
+      operator: eq
+      value: "12"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: true
