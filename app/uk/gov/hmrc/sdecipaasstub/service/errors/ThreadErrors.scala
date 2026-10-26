@@ -16,4 +16,4 @@
 
 package uk.gov.hmrc.sdecipaasstub.service.errors
 
-class TeamInsertError(msg: String) extends RuntimeException {}
+class ThreadInsertError(msg: String) extends RuntimeException(msg)

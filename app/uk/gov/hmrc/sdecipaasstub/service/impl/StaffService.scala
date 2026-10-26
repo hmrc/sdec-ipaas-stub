@@ -20,10 +20,11 @@ import cats.effect.Sync
 import cats.syntax.all.*
 import uk.gov.hmrc.sdecipaasstub.dto.{Staff, StaffTeam, StaffTeams, StaffUpdate}
 import uk.gov.hmrc.sdecipaasstub.hcp.algebra.StaffDataAccessAlgebra
+import uk.gov.hmrc.sdecipaasstub.hcp.entity.SdecStaff
 import uk.gov.hmrc.sdecipaasstub.infrastructure.ApplicationLogger
 import uk.gov.hmrc.sdecipaasstub.model.SRSEnrollment
 import uk.gov.hmrc.sdecipaasstub.service.algebra.{StaffRoleServiceAlgebra, StaffServiceAlgebra, TeamServiceAlgebra}
-import uk.gov.hmrc.sdecipaasstub.service.errors.StaffInsertError
+import uk.gov.hmrc.sdecipaasstub.service.errors.{StaffInsertError, StaffLookupError}
 
 import javax.inject.Inject
 
@@ -72,6 +73,9 @@ class StaffService[F[_]: Sync] @Inject() (
                       checkAndInsertForTeams(staffId, staff, enrollment)
                     }
     } yield StaffTeams.fromList(staffTeams)
+
+  override def findByPid(pid: String): F[SdecStaff] =
+    staffDataAccess.findByPID(pid).flatMap(_.liftTo[F](StaffLookupError(s"No staff found for pid $pid")))
 
   private def checkAndInsertForTeams(staffId: Long, staff: Staff, enrollment: SRSEnrollment): F[StaffTeam] =
     for {

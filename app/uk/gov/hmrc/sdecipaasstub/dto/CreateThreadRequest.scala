@@ -14,6 +14,13 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.sdecipaasstub.service.errors
+package uk.gov.hmrc.sdecipaasstub.dto
 
-class StaffInsertError(msg: String) extends RuntimeException
+import play.api.libs.json.*
+
+final case class CreateThreadRequest(pid: String, team: String)
+
+object CreateThreadRequest:
+  given format: OFormat[CreateThreadRequest] = Json.format[CreateThreadRequest]
+
+  def fromJson(json: JsValue): JsResult[CreateThreadRequest] = json.validate[CreateThreadRequest]

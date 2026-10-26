@@ -1,6 +1,8 @@
 # microservice specific routes
 
-POST        /api/v1/staff                         uk.gov.hmrc.sdecipaasstub.controllers.StaffController.insert()
-PUT         /api/v1/staff                         uk.gov.hmrc.sdecipaasstub.controllers.StaffController.updateOrInsert()
+POST        /api/v1/staff         uk.gov.hmrc.sdecipaasstub.controllers.StaffController.insert()
+PUT         /api/v1/staff         uk.gov.hmrc.sdecipaasstub.controllers.StaffController.updateOrInsert()
+
+POST        /api/v1/thread        uk.gov.hmrc.sdecipaasstub.controllers.staff.ThreadController.insert()
 
 POST        /api/v1/thread/:threadRef/file        uk.gov.hmrc.sdecipaasstub.controllers.FileController.saveFile(threadRef: String)

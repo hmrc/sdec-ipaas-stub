@@ -21,7 +21,9 @@ import doobie.*
 import doobie.implicits.*
 import doobie.implicits.javatimedrivernative.{JavaLocalDateMeta, JavaLocalDateTimeMeta}
 import uk.gov.hmrc.sdecipaasstub.hcp.algebra.ThreadDataAccessAlgebra
-import uk.gov.hmrc.sdecipaasstub.hcp.entity.SdecThread
+import uk.gov.hmrc.sdecipaasstub.hcp.entity.{SdecThread, ThreadStatus}
+
+import java.time.LocalDateTime
 
 class ThreadDataRepository[F[_]: MonadCancelThrow](
   xa: Transactor[F]
@@ -43,7 +45,7 @@ class ThreadDataRepository[F[_]: MonadCancelThrow](
           nino,
           message,
           required_by,
-          team_id,
+          team_id
           FROM sdec_thread
           WHERE reference = $threadRef
           """
@@ -60,4 +62,18 @@ class ThreadDataRepository[F[_]: MonadCancelThrow](
         """
       .query[Long]
       .option
+      .transact(xa)
+
+  override def insert(
+    reference: String,
+    status:    ThreadStatus,
+    createdBy: Long,
+    teamId:    Long,
+    now:       LocalDateTime
+  ): F[Long] =
+    sql"""
+      INSERT INTO sdec_thread (reference, status, created_by, created_timestamp, last_updated_timestamp, team_id)
+      VALUES ($reference, $status, $createdBy, $now, $now, $teamId)
+    """.update
+      .withUniqueGeneratedKeys[Long]("id")
       .transact(xa)

@@ -16,4 +16,6 @@
 
 package uk.gov.hmrc.sdecipaasstub.service.errors
 
-class TeamFindError(msg: String) extends RuntimeException {}
+class TeamLookupError(msg: String) extends RuntimeException(msg)
+
+class TeamInsertError(msg: String) extends RuntimeException(msg)

@@ -16,26 +16,48 @@
 
 package uk.gov.hmrc.sdecipaasstub.service.impl
 
-import cats.effect.Sync
+import cats.Monad
+import cats.effect.kernel.Sync
 import cats.syntax.all.*
-import uk.gov.hmrc.sdecipaasstub.dto
+import uk.gov.hmrc.sdecipaasstub.dto.{CreateThreadRequest, ThreadResponse}
 import uk.gov.hmrc.sdecipaasstub.hcp.algebra.ThreadDataAccessAlgebra
+import uk.gov.hmrc.sdecipaasstub.hcp.entity.ThreadStatus.PENDING
 import uk.gov.hmrc.sdecipaasstub.infrastructure.ApplicationLogger
-import uk.gov.hmrc.sdecipaasstub.service.algebra.ThreadServiceAlgebra
+import uk.gov.hmrc.sdecipaasstub.service.algebra.{StaffServiceAlgebra, TeamServiceAlgebra, ThreadServiceAlgebra}
+import uk.gov.hmrc.sdecipaasstub.service.errors.*
 
+import java.time.{LocalDateTime, ZoneOffset}
 import javax.inject.Inject
+import scala.util.Random
 
-class ThreadService[F[_]: Sync] @Inject() (
-  threadDataAccess: ThreadDataAccessAlgebra[F]
+class ThreadService[F[_]: Monad: Sync] @Inject() (
+  threadDataAccess: ThreadDataAccessAlgebra[F],
+  teamService:      TeamServiceAlgebra[F],
+  staffService:     StaffServiceAlgebra[F]
 ) extends ThreadServiceAlgebra[F]
     with ApplicationLogger[F] {
 
-  override def saveThread(thread: dto.Thread): F[dto.Thread] = ???
+  override def insert(request: CreateThreadRequest): F[ThreadResponse] =
+    for {
+      _ <- logger.info(s"Insert: $request")
+
+      staff     <- staffService.findByPid(request.pid)
+      team      <- teamService.getTeam(request.team)
+      reference <- generateReference
+      now       <- Sync[F].realTimeInstant.map(LocalDateTime.ofInstant(_, ZoneOffset.UTC))
+
+      _ <- threadDataAccess
+             .insert(reference, PENDING, staff.id, team.id, now)
+             .adaptError { case e => ThreadInsertError(e.getMessage) }
+    } yield ThreadResponse(reference)
 
   override def findIdByRef(threadRef: String): F[Option[Long]] =
-    for {
-      _        <- logger.info(s"Finding ID by the threadRef: $threadRef")
-      threadId <- threadDataAccess.findIdByRef(threadRef)
-    } yield threadId
+    threadDataAccess.findIdByRef(threadRef)
 
+  private def generateReference: F[String] =
+    Sync[F].delay {
+      val letters = List.fill(4)(('A' + Random.nextInt(26)).toChar).mkString
+      val digits  = List.fill(5)(Random.nextInt(10)).mkString
+      letters + digits
+    }
 }
