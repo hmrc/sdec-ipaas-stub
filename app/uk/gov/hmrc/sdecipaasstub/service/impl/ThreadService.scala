@@ -21,7 +21,7 @@ import cats.effect.Sync
 import cats.effect.kernel.Sync
 import cats.syntax.all.*
 import uk.gov.hmrc.sdecipaasstub.dto.{CreateThreadRequest, RecipientDetails, StaffDetails, Team, ThreadDetails, ThreadReference, ThreadResponse}
-import uk.gov.hmrc.sdecipaasstub.hcp.algebra.{RecipientDataAccessAlgebra, RecipientDetails, StaffDataAccessAlgebra, StaffDetails, Team, ThreadDataAccessAlgebra, ThreadDetails}
+import uk.gov.hmrc.sdecipaasstub.hcp.algebra.{RecipientDataAccessAlgebra, StaffDataAccessAlgebra, ThreadDataAccessAlgebra}
 import uk.gov.hmrc.sdecipaasstub.hcp.entity.ThreadStatus.PENDING
 import uk.gov.hmrc.sdecipaasstub.hcp.entity.{SdecRecipient, SdecStaff, SdecThread}
 import uk.gov.hmrc.sdecipaasstub.infrastructure.ApplicationLogger
@@ -99,74 +99,6 @@ class ThreadService[F[_]: Monad: Sync] @Inject() (
           "Thread has no recipient"
         )
       )
-
-      recipientOpt <- recipientDataAccess.findById(
-        recipientId
-      )
-
-      recipient <- Sync[F].fromOption(
-        recipientOpt,
-        new RuntimeException(
-          s"Recipient $recipientId not found"
-        )
-      )
-
-    } yield convertToDto(
-      thread,
-      staff,
-      recipient
-    )
-
-  private def convertToDto(
-                            thread: SdecThread,
-                            staff: SdecStaff,
-                            recipient: SdecRecipient
-                          ): ThreadReference =
-    ThreadReference(
-      id = thread.reference,
-      status = thread.status,
-      createdBy = StaffDetails(
-        id = staff.id,
-        pid = staff.pid,
-        name = staff.name
-      ),
-      createdTimeStamp =
-        thread.createdTimestamp.getOrElse(
-          throw new RuntimeException("Missing created timestamp")
-        ),
-      lastUpdatedTimeStamp =
-        thread.lastUpdatedTimestamp.getOrElse(
-          throw new RuntimeException("Missing last updated timestamp")
-        ),
-      threadExpiryDate =
-        thread.threadExpiryDate.getOrElse(
-          throw new RuntimeException("Missing thread expiry data")
-        ),
-      associatedCaseReference =
-        thread.caseReference.getOrElse(""),
-      threadOwner = None,
-      owningTeam = Team(
-        id = thread.teamId,
-        srsName = ""),
-      recipientDetails = RecipientDetails(
-        firstName = recipient.firstName,
-        lastName = recipient.lastName,
-        email = recipient.email,
-        phoneNumber =
-          recipient.phoneNumber.getOrElse("No phone number"),
-        nationalInsuranceNumber = recipient.nino,
-        hasRelatedCase =
-          thread.caseReference.isDefined,
-        caseReferenceNumber =
-          thread.caseReference
-      ),
-      threadDetails = ThreadDetails(
-        message = thread.message.getOrElse(""),
-        responseDate =
-          thread.requiredBy.getOrElse(thread.threadExpiryDate.get)
-      )
-    )
-}
 
       recipientOpt <- recipientDataAccess.findById(
         recipientId
