@@ -7,4 +7,4 @@ POST        /api/v1/thread                        uk.gov.hmrc.sdecipaasstub.cont
 
 POST        /api/v1/thread/:threadRef/file        uk.gov.hmrc.sdecipaasstub.controllers.FileController.saveFile(threadRef: String)
 
-GET         /api/v1/customer/thread/:threadId     uk.gov.hmrc.sdecipaasstub.controllers.ThreadController.getThreadReference(threadId: String)
+GET         /api/v1/customer/thread/:threadId     uk.gov.hmrc.sdecipaasstub.controllers.customer.ThreadController.getThreadReference(threadId: String)

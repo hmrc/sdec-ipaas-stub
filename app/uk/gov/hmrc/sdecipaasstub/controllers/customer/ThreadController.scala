@@ -14,27 +14,27 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.sdecipaasstub.controllers
+package uk.gov.hmrc.sdecipaasstub.controllers.customer
 
 import cats.effect.IO
 import jakarta.inject.{Inject, Singleton}
 import play.api.libs.json.*
-import play.api.mvc.{Action, AnyContent, ControllerComponents, Request, Result}
+import play.api.mvc.*
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
-import uk.gov.hmrc.sdecipaasstub.infrastructure.{ApplicationLogger, IOActionBuilder}
+import uk.gov.hmrc.sdecipaasstub.infrastructure.{ApplicationLogger, AuthenticatedIOActionBuilder, AuthenticatedRequest, IOActionBuilder}
 import uk.gov.hmrc.sdecipaasstub.service.algebra.ThreadServiceAlgebra
 
 @Singleton
 class ThreadController @Inject() (
                                    cc: ControllerComponents,
-                                   action: IOActionBuilder,
+                                   authAction: AuthenticatedIOActionBuilder,
                                    threadService: ThreadServiceAlgebra[IO]
                                  ) extends BackendController(cc)
   with ApplicationLogger[IO] {
 
   def getThreadReference(threadId: String): Action[AnyContent] =
-    action.asyncIO { request =>
-      given Request[AnyContent] = request
+    authAction.asyncIO { request =>
+      given AuthenticatedRequest[AnyContent] = request
 
       for {
         _ <- logger.info(s"Getting thread information for $threadId")

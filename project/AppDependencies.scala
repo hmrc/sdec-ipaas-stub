@@ -13,6 +13,7 @@ object AppDependencies {
   private val h2Version         = "2.5.250"
   private val doobieVersion     = "1.0.0-RC10"
   private val flywayVersion     = "10.17.0"
+  private val jwtVersion        = "12.0.0"
 
   val compile = Seq(
     "uk.gov.hmrc"   %% "bootstrap-backend-play-30" % bootstrapVersion,
@@ -24,7 +25,8 @@ object AppDependencies {
     "org.tpolecat"  %% "doobie-core"               % doobieVersion,
     "org.tpolecat"  %% "doobie-h2"                 % doobieVersion,
     "org.tpolecat"  %% "doobie-hikari"             % doobieVersion,
-    "org.flywaydb"   % "flyway-core"               % flywayVersion
+    "org.flywaydb"   % "flyway-core"               % flywayVersion,
+    "com.github.jwt-scala" %% "jwt-play-json"      % jwtVersion
   )
 
   val test = Seq(
