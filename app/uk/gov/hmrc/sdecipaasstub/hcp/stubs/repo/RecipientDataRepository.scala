@@ -26,8 +26,8 @@ import javax.inject.Singleton
 
 @Singleton
 class RecipientDataRepository[F[_]: MonadCancelThrow](
-                                                       xa: Transactor[F]
-                                                     ) extends RecipientDataAccessAlgebra[F]:
+  xa: Transactor[F]
+) extends RecipientDataAccessAlgebra[F]:
   override def findById(id: Long): F[Option[SdecRecipient]] =
     sql"""
         SELECT

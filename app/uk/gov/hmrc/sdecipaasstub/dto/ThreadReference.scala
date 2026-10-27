@@ -22,18 +22,18 @@ import uk.gov.hmrc.sdecipaasstub.hcp.entity.ThreadStatus
 import java.time.{LocalDate, LocalDateTime}
 
 case class ThreadReference(
-                            id:                      String,
-                            status:                  ThreadStatus,
-                            createdBy:               StaffDetails,
-                            createdTimeStamp:        LocalDateTime,
-                            lastUpdatedTimeStamp:    LocalDateTime,
-                            threadExpiryDate:        LocalDate,
-                            associatedCaseReference: String,
-                            threadOwner:             Option[StaffDetails],
-                            owningTeam:              Team,
-                            recipientDetails:        RecipientDetails,
-                            threadDetails:           ThreadDetails
-                          )
+  id:                      String,
+  status:                  ThreadStatus,
+  createdBy:               StaffDetails,
+  createdTimeStamp:        LocalDateTime,
+  lastUpdatedTimeStamp:    LocalDateTime,
+  threadExpiryDate:        LocalDate,
+  associatedCaseReference: String,
+  threadOwner:             Option[StaffDetails],
+  owningTeam:              Team,
+  recipientDetails:        RecipientDetails,
+  threadDetails:           ThreadDetails
+)
 
 object ThreadReference {
   given format: OFormat[ThreadReference] = Json.format[ThreadReference]

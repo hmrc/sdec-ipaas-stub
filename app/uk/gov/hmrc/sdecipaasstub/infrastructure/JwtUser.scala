@@ -19,9 +19,9 @@ package uk.gov.hmrc.sdecipaasstub.infrastructure
 import play.api.libs.json.*
 
 case class JwtUser(
-                    nino: String,
-                    confidenceLevel: Int
-                  )
+  nino:            String,
+  confidenceLevel: Int
+)
 
 object JwtUser {
   given OFormat[JwtUser] = Json.format[JwtUser]

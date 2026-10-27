@@ -21,24 +21,44 @@ import jakarta.inject.{Inject, Singleton}
 import play.api.libs.json.*
 import play.api.mvc.*
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
-import uk.gov.hmrc.sdecipaasstub.infrastructure.{ApplicationLogger, AuthenticatedIOActionBuilder, AuthenticatedRequest, IOActionBuilder}
+import uk.gov.hmrc.sdecipaasstub.dto.ErrorMessage
+import uk.gov.hmrc.sdecipaasstub.infrastructure.{ApplicationLogger, AuthenticatedIOActionBuilder, AuthenticatedRequest, JwtUser}
 import uk.gov.hmrc.sdecipaasstub.service.algebra.ThreadServiceAlgebra
 
 @Singleton
 class ThreadController @Inject() (
-                                   cc: ControllerComponents,
-                                   authAction: AuthenticatedIOActionBuilder,
-                                   threadService: ThreadServiceAlgebra[IO]
-                                 ) extends BackendController(cc)
-  with ApplicationLogger[IO] {
+  cc:            ControllerComponents,
+  authAction:    AuthenticatedIOActionBuilder,
+  threadService: ThreadServiceAlgebra[IO]
+) extends BackendController(cc)
+    with ApplicationLogger[IO] {
 
   def getThreadReference(threadId: String): Action[AnyContent] =
     authAction.asyncIO { request =>
       given AuthenticatedRequest[AnyContent] = request
 
       for {
-        _ <- logger.info(s"Getting thread information for $threadId")
-        thread <- threadService.getThreadInfoByThreadId(threadId)
-      } yield Ok(Json.toJson(thread))
+        _ <- logger.info(
+               s"Getting thread information for $threadId"
+             )
+        response <- handleThreadLookup(
+                      threadId,
+                      request.user
+                    )
+      } yield response
     }
+
+  private def handleThreadLookup(
+    threadId: String,
+    user:     JwtUser
+  ): IO[Result] =
+    threadService
+      .getThreadInfoByThreadId(threadId, user)
+      .map(thread => Ok(Json.toJson(thread)))
+      .handleErrorWith { exception =>
+        getBadRequest(Seq(exception.getMessage))
+      }
+
+  private def getBadRequest(errors: Seq[String]): IO[Result] =
+    IO.pure(BadRequest(Json.toJson(ErrorMessage(errors))))
 }

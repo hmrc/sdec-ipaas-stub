@@ -57,7 +57,7 @@ class StaffDataRepository[F[_]: MonadCancelThrow](
       .query[SdecStaff]
       .option
       .transact(xa)
-      
+
   override def insert(staff: Staff): F[Long] =
     sql"""
         INSERT INTO sdec_staff (

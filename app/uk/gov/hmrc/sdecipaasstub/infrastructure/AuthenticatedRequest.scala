@@ -19,6 +19,6 @@ package uk.gov.hmrc.sdecipaasstub.infrastructure
 import play.api.mvc.*
 
 class AuthenticatedRequest[A](
-                               val user: JwtUser,
-                               request: Request[A]
-                             ) extends WrappedRequest[A](request)
+  val user: JwtUser,
+  request:  Request[A]
+) extends WrappedRequest[A](request)

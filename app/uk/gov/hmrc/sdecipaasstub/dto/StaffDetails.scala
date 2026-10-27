@@ -19,10 +19,10 @@ package uk.gov.hmrc.sdecipaasstub.dto
 import play.api.libs.json.{Json, OFormat}
 
 final case class StaffDetails(
-                               id: Long,
-                               pid: String,
-                               name: String
-                             )
+  id:   Long,
+  pid:  String,
+  name: String
+)
 
 object StaffDetails {
   implicit val format: OFormat[StaffDetails] = Json.format[StaffDetails]

@@ -21,9 +21,9 @@ import play.api.libs.json.{Json, OFormat}
 import java.time.LocalDate
 
 final case class ThreadDetails(
-                                message:      String,
-                                responseDate: LocalDate
-                              )
+  message:      String,
+  responseDate: LocalDate
+)
 
 object ThreadDetails {
   implicit val format: OFormat[ThreadDetails] = Json.format[ThreadDetails]

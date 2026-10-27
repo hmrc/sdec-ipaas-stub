@@ -20,11 +20,11 @@ import cats.Monad
 import cats.effect.Sync
 import cats.effect.kernel.Sync
 import cats.syntax.all.*
-import uk.gov.hmrc.sdecipaasstub.dto.{CreateThreadRequest, RecipientDetails, StaffDetails, Team, ThreadDetails, ThreadReference, ThreadResponse}
+import uk.gov.hmrc.sdecipaasstub.dto.*
 import uk.gov.hmrc.sdecipaasstub.hcp.algebra.{RecipientDataAccessAlgebra, StaffDataAccessAlgebra, ThreadDataAccessAlgebra}
 import uk.gov.hmrc.sdecipaasstub.hcp.entity.ThreadStatus.PENDING
 import uk.gov.hmrc.sdecipaasstub.hcp.entity.{SdecRecipient, SdecStaff, SdecThread}
-import uk.gov.hmrc.sdecipaasstub.infrastructure.ApplicationLogger
+import uk.gov.hmrc.sdecipaasstub.infrastructure.{ApplicationLogger, JwtUser}
 import uk.gov.hmrc.sdecipaasstub.service.algebra.{StaffServiceAlgebra, TeamServiceAlgebra, ThreadServiceAlgebra}
 import uk.gov.hmrc.sdecipaasstub.service.errors.*
 
@@ -33,11 +33,11 @@ import javax.inject.Inject
 import scala.util.Random
 
 class ThreadService[F[_]: Monad: Sync] @Inject() (
-  threadDataAccess: ThreadDataAccessAlgebra[F],
-  staffDataAccess: StaffDataAccessAlgebra[F],
+  threadDataAccess:    ThreadDataAccessAlgebra[F],
+  staffDataAccess:     StaffDataAccessAlgebra[F],
   recipientDataAccess: RecipientDataAccessAlgebra[F],
-  teamService:      TeamServiceAlgebra[F],
-  staffService:     StaffServiceAlgebra[F]
+  teamService:         TeamServiceAlgebra[F],
+  staffService:        StaffServiceAlgebra[F]
 ) extends ThreadServiceAlgebra[F]
     with ApplicationLogger[F] {
 
@@ -66,50 +66,35 @@ class ThreadService[F[_]: Monad: Sync] @Inject() (
     }
 
   override def getThreadInfoByThreadId(
-                                        threadRef: String
-                                      ): F[ThreadReference] =
+    threadRef: String,
+    user:      JwtUser
+  ): F[ThreadReference] =
     for {
       _ <- logger.info(
-        s"Finding thread by reference: $threadRef"
-      )
+             s"Finding thread by reference: $threadRef"
+           )
 
-      threadOpt <- threadDataAccess.findByRef(threadRef)
+      thread <- findThread(threadRef)
 
-      thread <- Sync[F].fromOption(
-        threadOpt,
-        new RuntimeException(
-          s"Thread $threadRef not found"
-        )
-      )
-
-      staffOpt <- staffDataAccess.findById(
-        thread.createdBy
-      )
-
-      staff <- Sync[F].fromOption(
-        staffOpt,
-        new RuntimeException(
-          s"Staff ${thread.createdBy} not found"
-        )
-      )
+      staff <- findStaff(
+                 thread.createdBy
+               )
 
       recipientId <- Sync[F].fromOption(
-        thread.recipientId,
-        new RuntimeException(
-          "Thread has no recipient"
-        )
-      )
+                       thread.recipientId,
+                       new RuntimeException(
+                         "Thread has no recipient"
+                       )
+                     )
 
-      recipientOpt <- recipientDataAccess.findById(
-        recipientId
-      )
+      recipient <- findRecipient(
+                     recipientId
+                   )
 
-      recipient <- Sync[F].fromOption(
-        recipientOpt,
-        new RuntimeException(
-          s"Recipient $recipientId not found"
-        )
-      )
+      _ <- validateUser(
+             recipient,
+             user
+           )
 
     } yield convertToDto(
       thread,
@@ -117,11 +102,67 @@ class ThreadService[F[_]: Monad: Sync] @Inject() (
       recipient
     )
 
+  private def findThread(
+    threadRef: String
+  ): F[SdecThread] =
+    threadDataAccess
+      .findByRef(threadRef)
+      .flatMap(
+        Sync[F].fromOption(
+          _,
+          new RuntimeException(
+            s"Thread $threadRef not found"
+          )
+        )
+      )
+
+  private def findStaff(
+    staffId: Long
+  ): F[SdecStaff] =
+    staffDataAccess
+      .findById(staffId)
+      .flatMap(
+        Sync[F].fromOption(
+          _,
+          new RuntimeException(
+            s"Staff $staffId not found"
+          )
+        )
+      )
+
+  private def findRecipient(
+    recipientId: Long
+  ): F[SdecRecipient] =
+    recipientDataAccess
+      .findById(recipientId)
+      .flatMap(
+        Sync[F].fromOption(
+          _,
+          new RuntimeException(
+            s"Recipient $recipientId not found"
+          )
+        )
+      )
+
+  private def validateUser(
+    recipient: SdecRecipient,
+    user:      JwtUser
+  ): F[Unit] =
+    if recipient.nino == user.nino then {
+      Sync[F].unit
+    } else {
+      Sync[F].raiseError(
+        new RuntimeException(
+          "User details do not match recipient"
+        )
+      )
+    }
+
   private def convertToDto(
-                            thread: SdecThread,
-                            staff: SdecStaff,
-                            recipient: SdecRecipient
-                          ): ThreadReference =
+    thread:    SdecThread,
+    staff:     SdecStaff,
+    recipient: SdecRecipient
+  ): ThreadReference =
     ThreadReference(
       id = thread.reference,
       status = thread.status,
@@ -130,40 +171,30 @@ class ThreadService[F[_]: Monad: Sync] @Inject() (
         pid = staff.pid,
         name = staff.name
       ),
-      createdTimeStamp =
-        thread.createdTimestamp.getOrElse(
-          throw new RuntimeException("Missing created timestamp")
-        ),
-      lastUpdatedTimeStamp =
-        thread.lastUpdatedTimestamp.getOrElse(
-          throw new RuntimeException("Missing last updated timestamp")
-        ),
-      threadExpiryDate =
-        thread.threadExpiryDate.getOrElse(
-          throw new RuntimeException("Missing thread expiry data")
-        ),
-      associatedCaseReference =
-        thread.caseReference.getOrElse(""),
+      createdTimeStamp = thread.createdTimestamp.getOrElse(
+        throw new RuntimeException("Missing created timestamp")
+      ),
+      lastUpdatedTimeStamp = thread.lastUpdatedTimestamp.getOrElse(
+        throw new RuntimeException("Missing last updated timestamp")
+      ),
+      threadExpiryDate = thread.threadExpiryDate.getOrElse(
+        throw new RuntimeException("Missing thread expiry data")
+      ),
+      associatedCaseReference = thread.caseReference.getOrElse(""),
       threadOwner = None,
-      owningTeam = Team(
-        id = thread.teamId,
-        srsName = ""),
+      owningTeam = Team(id = thread.teamId, srsName = ""),
       recipientDetails = RecipientDetails(
         firstName = recipient.firstName,
         lastName = recipient.lastName,
         email = recipient.email,
-        phoneNumber =
-          recipient.phoneNumber.getOrElse("No phone number"),
+        phoneNumber = recipient.phoneNumber.getOrElse("No phone number"),
         nationalInsuranceNumber = recipient.nino,
-        hasRelatedCase =
-          thread.caseReference.isDefined,
-        caseReferenceNumber =
-          thread.caseReference
+        hasRelatedCase = thread.caseReference.isDefined,
+        caseReferenceNumber = thread.caseReference
       ),
       threadDetails = ThreadDetails(
         message = thread.message.getOrElse(""),
-        responseDate =
-          thread.requiredBy.getOrElse(thread.threadExpiryDate.get)
+        responseDate = thread.requiredBy.getOrElse(thread.threadExpiryDate.get)
       )
     )
 }

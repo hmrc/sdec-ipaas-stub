@@ -21,10 +21,10 @@ import play.api.libs.json.Json
 
 object JwtGenerator extends App {
 
-  val token =
+  val token: String =
     JwtJson.encode(
       Json.obj(
-        "nino" -> "WM111111D",
+        "nino"            -> "WM111111D",
         "confidenceLevel" -> 250
       ),
       "secretKey",

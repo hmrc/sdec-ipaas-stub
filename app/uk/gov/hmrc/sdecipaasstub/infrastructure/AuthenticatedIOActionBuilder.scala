@@ -27,16 +27,16 @@ import scala.concurrent.ExecutionContext
 
 @Singleton
 class AuthenticatedIOActionBuilder @Inject() (
-                                               cc: ControllerComponents,
-                                               runtime: IORuntime,
-                                               ec: ExecutionContext
-                                             ) extends AbstractController(cc) {
+  cc:      ControllerComponents,
+  runtime: IORuntime,
+  ec:      ExecutionContext
+) extends AbstractController(cc) {
 
   private val secret = "secretKey"
 
   def asyncIO(
-               block: AuthenticatedRequest[AnyContent] => IO[Result]
-             ): Action[AnyContent] =
+    block: AuthenticatedRequest[AnyContent] => IO[Result]
+  ): Action[AnyContent] =
     Action.async(cc.parsers.default) { request =>
       validateRequest(request) match {
         case Left(error) =>
@@ -53,8 +53,8 @@ class AuthenticatedIOActionBuilder @Inject() (
     }
 
   private def validateRequest(
-                               request: Request[AnyContent]
-                             ): Either[Result, JwtUser] =
+    request: Request[AnyContent]
+  ): Either[Result, JwtUser] =
     for {
       token <- extractToken(request)
       json  <- decodeToken(token)
@@ -63,8 +63,8 @@ class AuthenticatedIOActionBuilder @Inject() (
     } yield valid
 
   private def extractToken(
-                            request: Request[AnyContent]
-                          ): Either[Result, String] =
+    request: Request[AnyContent]
+  ): Either[Result, String] =
     request.headers
       .get("Authorization")
       .map(_.stripPrefix("Bearer ").trim)
@@ -78,8 +78,8 @@ class AuthenticatedIOActionBuilder @Inject() (
       )
 
   private def decodeToken(
-                           token: String
-                         ): Either[Result, JsValue] =
+    token: String
+  ): Either[Result, JsValue] =
     JwtJson
       .decodeJson(
         token,
@@ -97,8 +97,8 @@ class AuthenticatedIOActionBuilder @Inject() (
       }
 
   private def parseUser(
-                         json: JsValue
-                       ): Either[Result, JwtUser] =
+    json: JsValue
+  ): Either[Result, JwtUser] =
     json
       .validate[JwtUser]
       .asEither
@@ -112,9 +112,9 @@ class AuthenticatedIOActionBuilder @Inject() (
       }
 
   private def validateConfidenceLevel(
-                                       user: JwtUser
-                                     ): Either[Result, JwtUser] =
-    if (user.confidenceLevel >= 250) {
+    user: JwtUser
+  ): Either[Result, JwtUser] =
+    if user.confidenceLevel >= 250 then {
       Right(user)
     } else {
       Left(

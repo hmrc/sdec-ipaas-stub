@@ -17,11 +17,11 @@
 package uk.gov.hmrc.sdecipaasstub.hcp.entity
 
 final case class SdecRecipient(
-                                id:           Long,
-                                internalId:  Option[String],
-                                firstName:   String,
-                                lastName:    String,
-                                email:        String,
-                                phoneNumber: Option[String],
-                                nino:         String
-                              )
+  id:          Long,
+  internalId:  Option[String],
+  firstName:   String,
+  lastName:    String,
+  email:       String,
+  phoneNumber: Option[String],
+  nino:        String
+)

@@ -19,8 +19,8 @@ package uk.gov.hmrc.sdecipaasstub
 import cats.effect.IO
 import com.google.inject.{AbstractModule, TypeLiteral}
 import doobie.util.transactor.Transactor
-import uk.gov.hmrc.sdecipaasstub.hcp.algebra.{FileDataAccessAlgebra, RecipientDataAccessAlgebra, StaffDataAccessAlgebra, StaffRoleDataAccessAlgebra, TeamDataAccessAlgebra, ThreadDataAccessAlgebra}
-import uk.gov.hmrc.sdecipaasstub.hcp.stubs.{IOFileDataRepository, IORecipientDataRepository, IOStaffDataRepository, IOStaffRoleDataRepository, IOTeamDataRepository, IOThreadDataRepository}
+import uk.gov.hmrc.sdecipaasstub.hcp.algebra.*
+import uk.gov.hmrc.sdecipaasstub.hcp.stubs.*
 import uk.gov.hmrc.sdecipaasstub.infrastructure.DatabaseTransactorProvider
 import uk.gov.hmrc.sdecipaasstub.service.algebra.{FileServiceAlgebra, StaffRoleServiceAlgebra, StaffServiceAlgebra, TeamServiceAlgebra, ThreadServiceAlgebra}
 import uk.gov.hmrc.sdecipaasstub.service.io.{IOFileService, IOStaffRoleService, IOStaffService, IOTeamService, IOThreadService}
