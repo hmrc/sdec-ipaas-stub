@@ -22,5 +22,7 @@ trait TeamServiceAlgebra[F[_]] {
 
   def getByTeamName(team: String): F[Option[Team]]
 
+  def getTeam(team: String): F[Team]
+
   def insert(team: String, isTaskBased: Boolean = false): F[Long]
 }

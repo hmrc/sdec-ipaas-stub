@@ -23,3 +23,5 @@ final case class StaffFindError(message: String) extends StaffError(message)
 final case class StaffInsertError(message: String) extends StaffError(message)
 
 final case class StaffRoleInsertError(message: String) extends StaffError(message)
+
+final class StaffLookupError(message: String) extends RuntimeException(message)

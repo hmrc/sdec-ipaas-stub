@@ -17,13 +17,15 @@
 package uk.gov.hmrc.sdecipaasstub.controllers.staff
 
 import cats.effect.IO
+import jakarta.inject.{Inject, Singleton}
+import play.api.libs.json.*
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, ControllerComponents}
+import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
+import uk.gov.hmrc.sdecipaasstub.dto.{CreateThreadRequest, ErrorMessage}
 import uk.gov.hmrc.sdecipaasstub.infrastructure.{ApplicationLogger, IOActionBuilder}
 import uk.gov.hmrc.sdecipaasstub.service.algebra.ThreadServiceAlgebra
-
-import javax.inject.{Inject, Singleton}
+import uk.gov.hmrc.sdecipaasstub.service.errors.{StaffLookupError, TeamLookupError}
 
 @Singleton
 class ThreadController @Inject() (
@@ -43,4 +45,41 @@ class ThreadController @Inject() (
           ServiceUnavailable(Json.obj("message" -> e.getMessage))
         }
     }
+
+  def insert(): Action[AnyContent] =
+    action.asyncIO { request =>
+      request.body.asJson match {
+        case Some(json) =>
+          for {
+            _        <- logger.info(s"Handling POST for $json")
+            response <- handleCreateThread(CreateThreadRequest.fromJson(json))
+          } yield response
+        case None =>
+          getBadRequest(Seq("Request body must contain JSON"))
+      }
+    }
+
+  private def handleCreateThread(jsResult: JsResult[CreateThreadRequest]): IO[Result] =
+    jsResult match {
+      case JsSuccess(createRequest, _) =>
+        threadService
+          .insert(createRequest)
+          .map(response => Ok(Json.toJson(response)))
+          .recoverWith {
+            case e: StaffLookupError => getBadRequest(Seq(e.getMessage))
+            case e: TeamLookupError  => getBadRequest(Seq(e.getMessage))
+          }
+      case JsError(errors) =>
+        handleJsErrors(errors)
+    }
+
+  private def handleJsErrors(errors: collection.Seq[(JsPath, collection.Seq[JsonValidationError])]): IO[Result] =
+    val jsonErrors = errors.map { (path, validationErrors) =>
+      s"${path.toString} Errors: ${validationErrors.mkString(",")}"
+    }.toList
+    getBadRequest(jsonErrors)
+
+  private def getBadRequest(errors: Seq[String]): IO[Result] =
+    IO.pure(BadRequest(Json.toJson(ErrorMessage(errors))))
+
 }

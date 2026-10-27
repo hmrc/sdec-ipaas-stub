@@ -20,7 +20,7 @@ import uk.gov.hmrc.sdecipaasstub.model.SRSEnrollment
 
 trait StaffRoleDataAccessAlgebra[F[_]] {
 
-  def findByStaffAndTeam(staffId: Long, teamId: Long): F[StaffRole]
+  def findByStaffAndTeam(staffId: Long, teamId: Long): F[Option[StaffRole]]
 
   def insert(staffId: Long, teamId: Long, enrolment: SRSEnrollment): F[Long]
 

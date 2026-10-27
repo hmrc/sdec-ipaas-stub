@@ -17,15 +17,19 @@
 package uk.gov.hmrc.sdecipaasstub.service.impl
 
 import cats.effect.Sync
-import cats.implicits.*
+import cats.effect.kernel.Sync
+import cats.syntax.all.*
 import uk.gov.hmrc.sdecipaasstub.dto
-import uk.gov.hmrc.sdecipaasstub.dto.ThreadSummary
+import uk.gov.hmrc.sdecipaasstub.dto.{CreateThreadRequest, ThreadResponse, ThreadSummary}
 import uk.gov.hmrc.sdecipaasstub.hcp.algebra.ThreadDataAccessAlgebra
+import uk.gov.hmrc.sdecipaasstub.hcp.entity.ThreadStatus.PENDING
 import uk.gov.hmrc.sdecipaasstub.infrastructure.ApplicationLogger
 import uk.gov.hmrc.sdecipaasstub.service.algebra.{StaffServiceAlgebra, TeamServiceAlgebra, ThreadServiceAlgebra}
-import uk.gov.hmrc.sdecipaasstub.service.errors.{StaffFindError, TeamFindError}
+import uk.gov.hmrc.sdecipaasstub.service.errors.*
 
+import java.time.{LocalDateTime, ZoneOffset}
 import javax.inject.Inject
+import scala.util.Random
 
 class ThreadService[F[_]: Sync] @Inject() (
   threadDataAccess: ThreadDataAccessAlgebra[F],
@@ -34,13 +38,25 @@ class ThreadService[F[_]: Sync] @Inject() (
 ) extends ThreadServiceAlgebra[F]
     with ApplicationLogger[F] {
 
-  override def saveThread(thread: dto.Thread): F[dto.Thread] = ???
+  override def insert(request: CreateThreadRequest): F[ThreadResponse] =
+    for {
+      _       <- logger.info(s"Insert: $request")
+      staff   <- staffService.findByPid(request.pid)
+      staffId <- staff match
+                   case Some(value) => value.id.pure[F]
+                   case None        =>
+                     logger.warn(s"Could not find Staff with PID ${request.pid}") *>
+                       Sync[F].raiseError[Long](new StaffFindError(s"Could not find Staff with PID ${request.pid}"))
+      team      <- teamService.getTeam(request.team)
+      reference <- generateReference
+      now       <- Sync[F].realTimeInstant.map(LocalDateTime.ofInstant(_, ZoneOffset.UTC))
+      _         <- threadDataAccess
+             .insert(reference, PENDING, staffId, team.id, now)
+             .adaptError { case e => ThreadInsertError(e.getMessage) }
+    } yield ThreadResponse(reference)
 
   override def findIdByRef(threadRef: String): F[Option[Long]] =
-    for {
-      _        <- logger.info(s"Finding ID by the threadRef: $threadRef")
-      threadId <- threadDataAccess.findIdByRef(threadRef)
-    } yield threadId
+    threadDataAccess.findIdByRef(threadRef)
 
   override def findThreadsForWorkspace(pid: String, teamName: String): F[List[ThreadSummary]] =
     for {
@@ -50,7 +66,9 @@ class ThreadService[F[_]: Sync] @Inject() (
                         case Some(value) => value.id.pure[F]
                         case None        =>
                           logger.warn(s"Team Name does not exist in database: $teamName") *>
-                            Sync[F].raiseError[Long](new TeamFindError(s""))
+                            Sync[F].raiseError[Long](
+                              new TeamLookupError(s"Team Name does not exist in database: $teamName")
+                            )
                       }
       staff <- staffService.findByPid(pid)
       staffId: Long <- staff match {
@@ -62,4 +80,11 @@ class ThreadService[F[_]: Sync] @Inject() (
       threads <- threadDataAccess.findByStaffIdAndTeamId(staffId, teamId)
       _       <- logger.info(s"Found following threads in database: $threads")
     } yield threads.map(ThreadSummary.fromEntity)
+
+  private def generateReference: F[String] =
+    Sync[F].delay {
+      val letters = List.fill(4)(('A' + Random.nextInt(26)).toChar).mkString
+      val digits  = List.fill(5)(Random.nextInt(10)).mkString
+      letters + digits
+    }
 }

@@ -42,6 +42,6 @@ object ThreadSummary {
       status = ThreadStatus.fromEntity(entity.status),
       lastReplyDate = entity.lastUpdatedTimestamp.map(_.toLocalDate),
       deadline = entity.requiredBy,
-      contactStatus = ContactStatus.ReplyReceived //Default for now
+      contactStatus = ContactStatus.ReplyReceived // Default for now
     )
 }
