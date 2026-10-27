@@ -15,13 +15,17 @@
  */
 
 package uk.gov.hmrc.sdecipaasstub.hcp.algebra
-
 import uk.gov.hmrc.sdecipaasstub.hcp.entity.SdecThread
+import uk.gov.hmrc.sdecipaasstub.hcp.entity.ThreadStatus
+
+import java.time.LocalDateTime
 
 trait ThreadDataAccessAlgebra[F[_]] {
 
   def findByRef(threadRef: String): F[Option[SdecThread]]
 
   def findIdByRef(threadRef: String): F[Option[Long]]
+
+  def insert(reference: String, status: ThreadStatus, createdBy: Long, teamId: Long, now: LocalDateTime): F[Long]
 
 }

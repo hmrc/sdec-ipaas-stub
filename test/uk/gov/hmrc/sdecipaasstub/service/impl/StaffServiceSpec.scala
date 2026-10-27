@@ -48,6 +48,9 @@ class StaffServiceSpec extends AnyWordSpec with Matchers {
     override def getByTeamName(team: String): IO[Option[Team]] =
       IO.pure(existingTeam.map(entity => Team.fromEntity(entity)))
 
+    override def getTeam(team: String): IO[Team] =
+      IO.raiseError(UnsupportedOperationException("Not used"))
+
     override def insert(team: String, isTaskBased: Boolean): IO[Long] =
       insertedTeams.update(_ :+ (team, isTaskBased)).as(200L)
   }
@@ -57,7 +60,7 @@ class StaffServiceSpec extends AnyWordSpec with Matchers {
   ) extends StaffRoleServiceAlgebra[IO] {
 
     override def findByStaffAndTeam(staffId: Long, teamId: Long): IO[StaffRole] =
-      IO.raiseError(new UnsupportedOperationException("Not used"))
+      IO.raiseError(UnsupportedOperationException("Not used"))
 
     override def insert(staffId: Long, teamId: Long, enrolment: SRSEnrollment): IO[Long] =
       assignments.update(_ :+ (staffId, teamId, enrolment)).as(1L)
