@@ -23,7 +23,7 @@ import uk.gov.hmrc.sdecipaasstub.dto.*
 import uk.gov.hmrc.sdecipaasstub.hcp.algebra.ThreadDataAccessAlgebra
 import uk.gov.hmrc.sdecipaasstub.hcp.entity.{SdecStaff, SdecThread, ThreadStatus}
 import uk.gov.hmrc.sdecipaasstub.service.algebra.{StaffServiceAlgebra, TeamServiceAlgebra}
-import uk.gov.hmrc.sdecipaasstub.service.errors.{StaffLookupError, TeamLookupError, ThreadInsertError}
+import uk.gov.hmrc.sdecipaasstub.service.errors.{StaffFindError, TeamLookupError, ThreadInsertError}
 
 import java.time.LocalDateTime
 
@@ -53,6 +53,8 @@ class ThreadServiceSpec extends AnyWordSpec with Matchers {
         case Some(error) => SyncIO.raiseError(error)
         case None        => inserted.update(_ :+ InsertedThread(reference, status, createdBy, teamId)).as(1L)
       }
+
+    override def findByStaffIdAndTeamId(staffId: Long, teamId: Long): SyncIO[List[SdecThread]] = ???
   }
 
   final class StubStaffService(existingStaff: Option[SdecStaff]) extends StaffServiceAlgebra[SyncIO] {
@@ -63,11 +65,8 @@ class ThreadServiceSpec extends AnyWordSpec with Matchers {
     override def upsert(staffUpdate: StaffUpdate): SyncIO[StaffTeams] =
       SyncIO.raiseError(UnsupportedOperationException("Not used"))
 
-    override def findByPid(pid: String): SyncIO[SdecStaff] =
-      existingStaff match {
-        case Some(staff) => SyncIO.pure(staff)
-        case None        => SyncIO.raiseError(StaffLookupError(s"No staff found for pid $pid"))
-      }
+    override def findByPid(pid: String): SyncIO[Option[SdecStaff]] =
+      SyncIO.pure(existingStaff)
   }
 
   final class StubTeamService(existingTeam: Option[Team]) extends TeamServiceAlgebra[SyncIO] {
@@ -122,8 +121,8 @@ class ThreadServiceSpec extends AnyWordSpec with Matchers {
       } yield (outcome, actual)).unsafeRunSync()
 
       outcome match {
-        case Left(_: StaffLookupError) => succeed
-        case other                     => fail(s"Expected StaffLookupError but got $other")
+        case Left(_: StaffFindError) => succeed
+        case other                   => fail(s"Expected StaffLookupError but got $other")
       }
       actualInserts mustBe Nil
     }

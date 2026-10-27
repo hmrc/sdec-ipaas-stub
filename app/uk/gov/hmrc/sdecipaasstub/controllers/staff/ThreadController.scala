@@ -19,6 +19,7 @@ package uk.gov.hmrc.sdecipaasstub.controllers.staff
 import cats.effect.IO
 import jakarta.inject.{Inject, Singleton}
 import play.api.libs.json.*
+import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import uk.gov.hmrc.sdecipaasstub.dto.{CreateThreadRequest, ErrorMessage}
@@ -33,6 +34,17 @@ class ThreadController @Inject() (
   threadService: ThreadServiceAlgebra[IO]
 ) extends BackendController(cc)
     with ApplicationLogger[IO] {
+
+  def getThreadsForWorkspace(pid: String, teamName: String): Action[AnyContent] =
+    action.asyncIO { _ =>
+      threadService
+        .findThreadsForWorkspace(pid, teamName)
+        .map(list => Ok(Json.toJson(list)))
+        .recover { case e: Exception =>
+          logger.warn(s"Workspace thread retrieval for PID/Team [$pid, $teamName] failed with ${e.getMessage}")
+          ServiceUnavailable(Json.obj("message" -> e.getMessage))
+        }
+    }
 
   def insert(): Action[AnyContent] =
     action.asyncIO { request =>

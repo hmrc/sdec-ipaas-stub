@@ -1,0 +1,70 @@
+openapi: 3.0.3
+info:
+  title: API for getting threads to display in Staff's Workspace
+  version: 1.0.0
+servers:
+  - url: http://localhost:4999/sdec-ipaas-stub
+    description: Local development server
+paths:
+  /api/v1/thread/pid/1001/team/Child_Benefit:
+    get:
+      summary: List of all threads to display in the workspace
+      responses:
+        '200':
+          description: A JSON array of thread information
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ThreadSummary"
+        '503':
+          description: Service is unavailable
+components:
+  schemas:
+    ThreadSummary:
+      type: object
+      required:
+        - reference
+        - contactName
+        - status
+        - contactStatus
+      properties:
+        reference:
+          type: string
+          description: Thread Reference
+          example: "ABCD12345678"
+        caseReference:
+          type: string
+          nullable: true
+          description: Optional case reference
+          example: "CASE-1234"
+        status:
+          $ref: "#/components/schemas/ThreadStatus"
+        lastReplyDate:
+          type: string
+          nullable: true
+          format: date
+          description: Optional date of the last reply, in ISO8601 format
+          example: "2026-10-20"
+        deadline:
+          type: string
+          nullable: true
+          format: date
+          description: Optional date of the response deadline, in ISO8601 format
+          example: "2026-10-20"
+        contactStatus:
+          $ref: "#/components/schemas/ContactStatus"
+    ThreadStatus:
+      type: string
+      enum:
+        - Pending
+        - Active
+        - Closed
+      description: Current status of the thread in the database
+    ContactStatus:
+      type: string
+      enum:
+        - "Reply received"
+        - "Overdue reply"
+      description: Status of the thread as per action required

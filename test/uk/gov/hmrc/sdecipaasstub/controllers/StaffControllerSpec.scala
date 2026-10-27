@@ -51,8 +51,8 @@ class StaffControllerSpec extends PlaySpec {
     override def upsert(staffUpdate: StaffUpdate): IO[StaffTeams] =
       IO.pure(StaffTeams(1L, Seq(1L)))
 
-    override def findByPid(pid: String): IO[SdecStaff] =
-      IO.raiseError(UnsupportedOperationException("Not used"))
+    override def findByPid(pid: String): IO[Option[SdecStaff]] = IO(None)
+
   }
 
   val controller = new StaffController(cc, actionBuilder, staffService)
