@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.sdecipaasstub.service.impl
 
-import cats.Monad
 import cats.effect.Sync
 import cats.effect.kernel.Sync
 import cats.syntax.all.*
@@ -33,11 +32,11 @@ import javax.inject.Inject
 import scala.util.Random
 
 class ThreadService[F[_]: Sync] @Inject() (
-  threadDataAccess: ThreadDataAccessAlgebra[F],
+  threadDataAccess:    ThreadDataAccessAlgebra[F],
   staffDataAccess:     StaffDataAccessAlgebra[F],
   recipientDataAccess: RecipientDataAccessAlgebra[F],
-  teamService:      TeamServiceAlgebra[F],
-  staffService:     StaffServiceAlgebra[F]
+  teamService:         TeamServiceAlgebra[F],
+  staffService:        StaffServiceAlgebra[F]
 ) extends ThreadServiceAlgebra[F]
     with ApplicationLogger[F] {
 

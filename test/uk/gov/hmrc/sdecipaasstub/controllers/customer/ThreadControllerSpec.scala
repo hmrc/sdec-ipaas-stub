@@ -133,6 +133,12 @@ class ThreadControllerSpec extends PlaySpec {
         user:     JwtUser
       ): IO[ThreadReference] =
         lookup(threadId, user)
+
+      override def findThreadsForWorkspace(
+        pid:      String,
+        teamName: String
+      ): IO[List[ThreadSummary]] =
+        IO.pure(List.empty)
     }
 
   private def controllerWith(

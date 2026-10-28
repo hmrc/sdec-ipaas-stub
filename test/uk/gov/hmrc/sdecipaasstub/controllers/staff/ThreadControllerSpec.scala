@@ -25,7 +25,7 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import uk.gov.hmrc.sdecipaasstub.controllers.staff.ThreadController
 import uk.gov.hmrc.sdecipaasstub.dto.{CreateThreadRequest, ThreadReference, ThreadResponse, ThreadSummary}
-import uk.gov.hmrc.sdecipaasstub.infrastructure.{IOActionBuilder,JwtUser}
+import uk.gov.hmrc.sdecipaasstub.infrastructure.{IOActionBuilder, JwtUser}
 import uk.gov.hmrc.sdecipaasstub.service.algebra.ThreadServiceAlgebra
 import uk.gov.hmrc.sdecipaasstub.service.errors.{StaffLookupError, TeamLookupError}
 
