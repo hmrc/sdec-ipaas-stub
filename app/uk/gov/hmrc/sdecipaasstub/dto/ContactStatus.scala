@@ -14,10 +14,27 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.sdecipaasstub.service.errors
+package uk.gov.hmrc.sdecipaasstub.dto
 
-class StaffInsertError(msg: String) extends RuntimeException(msg)
+import play.api.libs.json.*
 
-class StaffLookupError(msg: String) extends RuntimeException(msg)
+enum ContactStatus(val status: String) {
+  case ReplyReceived extends ContactStatus("Reply received")
+  case CustomerOverdue extends ContactStatus("Overdue reply")
+}
 
-class StaffRoleInsertError(msg: String) extends RuntimeException(msg)
+object ContactStatus {
+  given Format[ContactStatus] = Format(
+    Reads {
+      case JsString(value) =>
+        ContactStatus.values
+          .find(_.status == value)
+          .map(JsSuccess(_))
+          .getOrElse(JsError(s"Invalid ContactStatus: $value"))
+
+      case _ =>
+        JsError("Expected a string")
+    },
+    Writes(status => JsString(status.status))
+  )
+}

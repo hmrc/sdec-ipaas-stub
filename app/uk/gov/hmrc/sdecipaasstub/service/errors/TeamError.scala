@@ -16,6 +16,8 @@
 
 package uk.gov.hmrc.sdecipaasstub.service.errors
 
-class TeamLookupError(msg: String) extends RuntimeException(msg)
+abstract class TeamError(message: String) extends RuntimeException(message)
 
-class TeamInsertError(msg: String) extends RuntimeException(msg)
+final class TeamLookupError(message: String) extends TeamError(message)
+
+final class TeamInsertError(message: String) extends TeamError(message)

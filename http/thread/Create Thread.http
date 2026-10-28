@@ -10,7 +10,7 @@ Content-Type: application/json
 ###
 
 ### PUT to update thread with thread information: Response: 204
-POST http://localhost:4999/sdec-ipaas-stub/api/v1/thread/{thread-reference}
+POST http://localhost:4999/sdec-ipaas-stub/api/v1/thread/AZXX88053
 Content-Type:  application/json
 
 {

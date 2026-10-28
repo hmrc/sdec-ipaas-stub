@@ -25,5 +25,6 @@ trait StaffServiceAlgebra[F[_]] {
 
   def upsert(staffUpdate: StaffUpdate): F[StaffTeams]
 
-  def findByPid(pid: String): F[SdecStaff]
+  def findByPid(pid: String): F[Option[SdecStaff]]
+
 }

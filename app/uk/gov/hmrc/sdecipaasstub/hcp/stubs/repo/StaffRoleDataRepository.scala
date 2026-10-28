@@ -30,7 +30,7 @@ class StaffRoleDataRepository[F[_]: MonadCancelThrow](
   override def findByStaffAndTeam(
     staffId: Long,
     teamId:  Long
-  ): F[StaffRole] =
+  ): F[Option[StaffRole]] =
     sql"""
       SELECT
         id,
@@ -42,7 +42,7 @@ class StaffRoleDataRepository[F[_]: MonadCancelThrow](
         AND team_id = $teamId
     """
       .query[StaffRole]
-      .unique
+      .option
       .transact(xa)
 
   override def insert(
