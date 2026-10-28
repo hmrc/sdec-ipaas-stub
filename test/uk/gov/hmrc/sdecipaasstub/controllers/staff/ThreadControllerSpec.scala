@@ -24,8 +24,8 @@ import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import uk.gov.hmrc.sdecipaasstub.controllers.staff.ThreadController
-import uk.gov.hmrc.sdecipaasstub.dto.{CreateThreadRequest, ThreadResponse}
-import uk.gov.hmrc.sdecipaasstub.infrastructure.IOActionBuilder
+import uk.gov.hmrc.sdecipaasstub.dto.{CreateThreadRequest, ThreadReference, ThreadResponse}
+import uk.gov.hmrc.sdecipaasstub.infrastructure.{IOActionBuilder, JwtUser}
 import uk.gov.hmrc.sdecipaasstub.service.algebra.ThreadServiceAlgebra
 import uk.gov.hmrc.sdecipaasstub.service.errors.{StaffLookupError, TeamLookupError}
 
@@ -58,6 +58,14 @@ class ThreadControllerSpec extends PlaySpec {
 
     override def findIdByRef(threadRef: String): IO[Option[Long]] =
       IO.pure(Some(1L))
+
+    override def getThreadInfoByThreadId(
+      threadId: String,
+      user:     JwtUser
+    ): IO[ThreadReference] =
+      IO.raiseError(
+        new RuntimeException("Not implemented in this test")
+      )
   }
 
   val controller = new ThreadController(cc, actionBuilder, threadService)
