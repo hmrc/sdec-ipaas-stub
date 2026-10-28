@@ -77,17 +77,9 @@ class ThreadControllerSpec extends PlaySpec {
         pid = "1001",
         name = "John Test"
       ),
-      createdTimeStamp = LocalDateTime.of(
-        2026, 9, 1, 9, 30
-      ),
-      lastUpdatedTimeStamp = LocalDateTime.of(
-        2026, 9, 1, 10, 15
-      ),
-      threadExpiryDate = LocalDate.of(
-        2026,
-        10,
-        1
-      ),
+      createdTimeStamp = LocalDateTime.now,
+      lastUpdatedTimeStamp = LocalDateTime.now,
+      threadExpiryDate = LocalDate.now.plusMonths(1),
       associatedCaseReference = "CASE-100001",
       threadOwner = None,
       owningTeam = Team(
@@ -105,11 +97,7 @@ class ThreadControllerSpec extends PlaySpec {
       ),
       threadDetails = ThreadDetails(
         message = "Where are the files?",
-        responseDate = LocalDate.of(
-          2026,
-          10,
-          1
-        )
+        responseDate = LocalDate.now.plusMonths(1)
       )
     )
 

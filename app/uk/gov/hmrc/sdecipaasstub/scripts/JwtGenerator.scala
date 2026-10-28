@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.sdecipaasstub.infrastructure
+package uk.gov.hmrc.sdecipaasstub.scripts
 
 import pdi.jwt.*
 import play.api.libs.json.Json
