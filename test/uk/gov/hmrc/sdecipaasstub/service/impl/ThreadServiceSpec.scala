@@ -20,10 +20,10 @@ import cats.effect.{Ref, SyncIO}
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import uk.gov.hmrc.sdecipaasstub.dto.*
-import uk.gov.hmrc.sdecipaasstub.hcp.algebra.{RecipientDataAccessAlgebra, StaffDataAccessAlgebra, ThreadDataAccessAlgebra}
+import uk.gov.hmrc.sdecipaasstub.hcp.algebra.ThreadDataAccessAlgebra
 import uk.gov.hmrc.sdecipaasstub.hcp.entity.{SdecRecipient, SdecStaff, SdecThread, ThreadStatus}
 import uk.gov.hmrc.sdecipaasstub.infrastructure.JwtUser
-import uk.gov.hmrc.sdecipaasstub.service.algebra.{StaffServiceAlgebra, TeamServiceAlgebra}
+import uk.gov.hmrc.sdecipaasstub.service.algebra.{RecipientServiceAlgebra, StaffServiceAlgebra, TeamServiceAlgebra}
 import uk.gov.hmrc.sdecipaasstub.service.errors.{StaffFindError, TeamLookupError, ThreadInsertError}
 
 import java.time.{LocalDate, LocalDateTime}
@@ -72,39 +72,29 @@ class ThreadServiceSpec extends AnyWordSpec with Matchers {
 
     override def findByPid(pid: String): SyncIO[Option[SdecStaff]] =
       SyncIO.pure(existingStaff)
+
+    override def findStaff(staffId: Long): SyncIO[SdecStaff] =
+      existingStaff match {
+        case Some(found) => SyncIO.pure(found)
+        case None        =>
+          SyncIO.raiseError(
+            StaffFindError(s"Staff with ID $staffId not found")
+          )
+      }
   }
 
-  final class StubStaffDataAccess(
-    staff: Option[SdecStaff]
-  ) extends StaffDataAccessAlgebra[SyncIO] {
-
-    override def findById(
-      id: Long
-    ): SyncIO[Option[SdecStaff]] =
-      SyncIO.pure(staff)
-
-    override def findByPID(
-      pid: String
-    ): SyncIO[Option[SdecStaff]] =
-      SyncIO.pure(staff)
-
-    override def insert(
-      staff: Staff
-    ): SyncIO[Long] =
-      SyncIO.raiseError(
-        UnsupportedOperationException("Not used")
-      )
-  }
-
-  final class StubRecipientDataAccess(
+  final class StubRecipientService(
     recipient: Option[SdecRecipient]
-  ) extends RecipientDataAccessAlgebra[SyncIO] {
+  ) extends RecipientServiceAlgebra[SyncIO] {
 
-    override def findById(
-      id: Long
-    ): SyncIO[Option[SdecRecipient]] =
-      SyncIO.pure(recipient)
-
+    override def findRecipient(recipientId: Long): SyncIO[SdecRecipient] =
+      recipient match {
+        case Some(found) => SyncIO.pure(found)
+        case None        =>
+          SyncIO.raiseError(
+            new RuntimeException(s"Recipient $recipientId not found")
+          )
+      }
   }
 
   final class StubTeamService(existingTeam: Option[Team]) extends TeamServiceAlgebra[SyncIO] {
@@ -171,10 +161,9 @@ class ThreadServiceSpec extends AnyWordSpec with Matchers {
   ) =
     new ThreadService[SyncIO](
       new StubThreadDataAccess(inserted, insertError),
-      new StubStaffDataAccess(existingStaff),
-      new StubRecipientDataAccess(existingRecipient),
       new StubTeamService(existingTeam),
-      new StubStaffService(existingStaff)
+      new StubStaffService(existingStaff),
+      new StubRecipientService(existingRecipient)
     )
 
   "insert" should {

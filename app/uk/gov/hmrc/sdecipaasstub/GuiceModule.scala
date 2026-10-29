@@ -22,8 +22,8 @@ import doobie.util.transactor.Transactor
 import uk.gov.hmrc.sdecipaasstub.hcp.algebra.*
 import uk.gov.hmrc.sdecipaasstub.hcp.stubs.*
 import uk.gov.hmrc.sdecipaasstub.infrastructure.DatabaseTransactorProvider
-import uk.gov.hmrc.sdecipaasstub.service.algebra.{FileServiceAlgebra, StaffRoleServiceAlgebra, StaffServiceAlgebra, TeamServiceAlgebra, ThreadServiceAlgebra}
-import uk.gov.hmrc.sdecipaasstub.service.io.{IOFileService, IOStaffRoleService, IOStaffService, IOTeamService, IOThreadService}
+import uk.gov.hmrc.sdecipaasstub.service.algebra.*
+import uk.gov.hmrc.sdecipaasstub.service.io.*
 
 class GuiceModule extends AbstractModule:
 
@@ -45,3 +45,4 @@ class GuiceModule extends AbstractModule:
     bind(new TypeLiteral[StaffServiceAlgebra[IO]] {}).to(classOf[IOStaffService])
     bind(new TypeLiteral[TeamServiceAlgebra[IO]] {}).to(classOf[IOTeamService])
     bind(new TypeLiteral[ThreadServiceAlgebra[IO]] {}).to(classOf[IOThreadService])
+    bind(new TypeLiteral[RecipientServiceAlgebra[IO]] {}).to(classOf[IORecipientService])

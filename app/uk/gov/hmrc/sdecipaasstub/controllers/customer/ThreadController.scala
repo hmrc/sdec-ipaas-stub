@@ -38,13 +38,9 @@ class ThreadController @Inject() (
       given AuthenticatedRequest[AnyContent] = request
 
       for {
-        _ <- logger.info(
-               s"Getting thread information for $threadId"
-             )
-        response <- handleThreadLookup(
-                      threadId,
-                      request.user
-                    )
+        _ <- logger.info(s"Getting thread information for $threadId")
+
+        response <- handleThreadLookup(threadId, request.user)
       } yield response
     }
 

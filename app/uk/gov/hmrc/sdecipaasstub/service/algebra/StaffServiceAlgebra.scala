@@ -27,4 +27,6 @@ trait StaffServiceAlgebra[F[_]] {
 
   def findByPid(pid: String): F[Option[SdecStaff]]
 
+  def findStaff(staffId: Long): F[SdecStaff]
+
 }

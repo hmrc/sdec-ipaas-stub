@@ -53,6 +53,8 @@ class StaffControllerSpec extends PlaySpec {
 
     override def findByPid(pid: String): IO[Option[SdecStaff]] = IO(None)
 
+    override def findStaff(staffId: Long): IO[SdecStaff] = IO(SdecStaff(1L, "pid", "Name", None))
+
   }
 
   val controller = new StaffController(cc, actionBuilder, staffService)
