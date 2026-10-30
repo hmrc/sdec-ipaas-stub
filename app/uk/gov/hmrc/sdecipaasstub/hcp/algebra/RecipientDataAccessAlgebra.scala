@@ -16,10 +16,11 @@
 
 package uk.gov.hmrc.sdecipaasstub.hcp.algebra
 
-import uk.gov.hmrc.sdecipaasstub.hcp.entity.SdecRecipient
+import uk.gov.hmrc.sdecipaasstub.hcp.entity.{NewSdecRecipient, SdecRecipient}
 
 trait RecipientDataAccessAlgebra[F[_]] {
 
   def findById(id: Long): F[Option[SdecRecipient]]
 
+  def createAndAssignToThread(threadId: Long, recipient: NewSdecRecipient): F[SdecRecipient]
 }

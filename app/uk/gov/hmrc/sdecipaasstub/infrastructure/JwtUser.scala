@@ -19,6 +19,11 @@ package uk.gov.hmrc.sdecipaasstub.infrastructure
 import play.api.libs.json.*
 
 case class JwtUser(
+  internalId:      Option[String],
+  firstName:       Option[String],
+  lastName:        Option[String],
+  email:           Option[String],
+  phoneNumber:     Option[String],
   nino:            String,
   confidenceLevel: Int
 )

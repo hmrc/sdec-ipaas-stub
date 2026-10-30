@@ -24,6 +24,11 @@ object JwtGenerator extends App {
   val token: String =
     JwtJson.encode(
       Json.obj(
+        "internalId"      -> "12345",
+        "firstName"       -> "John",
+        "lastName"        -> "Smith",
+        "email"           -> "john.smith@example.com",
+        "phoneNumber"     -> None,
         "nino"            -> "WM111111D",
         "confidenceLevel" -> 250
       ),

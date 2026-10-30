@@ -25,3 +25,5 @@ class ThreadRecipientMissingError(msg: String) extends RuntimeException(msg)
 class ThreadFieldMissingError(msg: String) extends RuntimeException(msg)
 
 class ThreadAccessDeniedError(msg: String) extends RuntimeException(msg)
+
+class JwtFieldMissingError(msg: String) extends RuntimeException(msg)

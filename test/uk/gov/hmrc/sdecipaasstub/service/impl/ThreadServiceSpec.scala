@@ -21,7 +21,7 @@ import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import uk.gov.hmrc.sdecipaasstub.dto.*
 import uk.gov.hmrc.sdecipaasstub.hcp.algebra.ThreadDataAccessAlgebra
-import uk.gov.hmrc.sdecipaasstub.hcp.entity.{SdecRecipient, SdecStaff, SdecThread, ThreadStatus}
+import uk.gov.hmrc.sdecipaasstub.hcp.entity.{NewSdecRecipient, SdecRecipient, SdecStaff, SdecThread, ThreadStatus}
 import uk.gov.hmrc.sdecipaasstub.infrastructure.JwtUser
 import uk.gov.hmrc.sdecipaasstub.service.algebra.{RecipientServiceAlgebra, StaffServiceAlgebra, TeamServiceAlgebra}
 import uk.gov.hmrc.sdecipaasstub.service.errors.{StaffFindError, TeamLookupError, ThreadInsertError}
@@ -33,6 +33,7 @@ class ThreadServiceSpec extends AnyWordSpec with Matchers {
   final case class InsertedThread(reference: String, status: ThreadStatus, createdBy: Long, teamId: Long)
 
   final class StubThreadDataAccess(
+    thread:      Option[SdecThread],
     inserted:    Ref[SyncIO, List[InsertedThread]],
     insertError: Option[Throwable]
   ) extends ThreadDataAccessAlgebra[SyncIO] {
@@ -40,9 +41,7 @@ class ThreadServiceSpec extends AnyWordSpec with Matchers {
     override def findByRef(
       threadRef: String
     ): SyncIO[Option[SdecThread]] =
-      SyncIO.pure(
-        Option.when(thread.reference == threadRef)(thread)
-      )
+      SyncIO.pure(thread.filter(_.reference == threadRef))
 
     override def findIdByRef(threadRef: String): SyncIO[Option[Long]] =
       SyncIO.pure(Some(1L))
@@ -84,17 +83,32 @@ class ThreadServiceSpec extends AnyWordSpec with Matchers {
   }
 
   final class StubRecipientService(
-    recipient: Option[SdecRecipient]
+    recipient:         Option[SdecRecipient],
+    createdRecipients: Ref[SyncIO, List[(Long, NewSdecRecipient)]]
   ) extends RecipientServiceAlgebra[SyncIO] {
 
-    override def findRecipient(recipientId: Long): SyncIO[Option[SdecRecipient]] =
-      recipient match {
-        case Some(found) => SyncIO.pure(Option(found))
-        case None        =>
-          SyncIO.raiseError(
-            new RuntimeException(s"Recipient $recipientId not found")
+    override def findRecipient(
+      recipientId: Long
+    ): SyncIO[Option[SdecRecipient]] =
+      SyncIO.pure(recipient)
+
+    override def createAndAssignToThread(
+      threadId:     Long,
+      newRecipient: NewSdecRecipient
+    ): SyncIO[SdecRecipient] =
+      createdRecipients
+        .update(_ :+ (threadId -> newRecipient))
+        .as(
+          SdecRecipient(
+            id = 99L,
+            internalId = newRecipient.internalId,
+            firstName = Some(newRecipient.firstName),
+            lastName = Some(newRecipient.lastName),
+            email = Some(newRecipient.email),
+            phoneNumber = newRecipient.phoneNumber,
+            nino = newRecipient.nino
           )
-      }
+        )
   }
 
   final class StubTeamService(existingTeam: Option[Team]) extends TeamServiceAlgebra[SyncIO] {
@@ -118,6 +132,11 @@ class ThreadServiceSpec extends AnyWordSpec with Matchers {
 
   private val jwtUser =
     JwtUser(
+      internalId = Some("12345"),
+      firstName = Some("John"),
+      lastName = Some("Smith"),
+      email = Some("john.smith@example.com"),
+      phoneNumber = None,
       nino = "WM111111D",
       confidenceLevel = 250
     )
@@ -157,13 +176,15 @@ class ThreadServiceSpec extends AnyWordSpec with Matchers {
     existingRecipient: Option[SdecRecipient],
     existingTeam:      Option[Team],
     inserted:          Ref[SyncIO, List[InsertedThread]],
+    createdRecipients: Ref[SyncIO, List[(Long, NewSdecRecipient)]],
+    existingThread:    Option[SdecThread] = Some(thread),
     insertError:       Option[Throwable] = None
   ) =
     new ThreadService[SyncIO](
-      new StubThreadDataAccess(inserted, insertError),
+      new StubThreadDataAccess(existingThread, inserted, insertError),
       new StubTeamService(existingTeam),
       new StubStaffService(existingStaff),
-      new StubRecipientService(existingRecipient)
+      new StubRecipientService(existingRecipient, createdRecipients)
     )
 
   "insert" should {
@@ -171,7 +192,8 @@ class ThreadServiceSpec extends AnyWordSpec with Matchers {
     "insert a thread and return its reference" in {
       val (response, actualInserts) = (for {
         inserted <- Ref.of[SyncIO, List[InsertedThread]](Nil)
-        response <- service(Some(staff), Some(recipient), Some(team), inserted).insert(request)
+        created  <- Ref.of[SyncIO, List[(Long, NewSdecRecipient)]](Nil)
+        response <- service(Some(staff), Some(recipient), Some(team), inserted, created).insert(request)
         actual   <- inserted.get
       } yield (response, actual)).unsafeRunSync()
 
@@ -182,7 +204,8 @@ class ThreadServiceSpec extends AnyWordSpec with Matchers {
     "fail with StaffLookupError and insert nothing when staff is not found" in {
       val (outcome, actualInserts) = (for {
         inserted <- Ref.of[SyncIO, List[InsertedThread]](Nil)
-        outcome  <- service(None, Some(recipient), Some(team), inserted).insert(request).attempt
+        created  <- Ref.of[SyncIO, List[(Long, NewSdecRecipient)]](Nil)
+        outcome  <- service(None, Some(recipient), Some(team), inserted, created).insert(request).attempt
         actual   <- inserted.get
       } yield (outcome, actual)).unsafeRunSync()
 
@@ -196,7 +219,8 @@ class ThreadServiceSpec extends AnyWordSpec with Matchers {
     "fail with TeamLookupError and insert nothing when team is not found" in {
       val (outcome, actualInserts) = (for {
         inserted <- Ref.of[SyncIO, List[InsertedThread]](Nil)
-        outcome  <- service(Some(staff), Some(recipient), None, inserted).insert(request).attempt
+        created  <- Ref.of[SyncIO, List[(Long, NewSdecRecipient)]](Nil)
+        outcome  <- service(Some(staff), Some(recipient), None, inserted, created).insert(request).attempt
         actual   <- inserted.get
       } yield (outcome, actual)).unsafeRunSync()
 
@@ -210,7 +234,15 @@ class ThreadServiceSpec extends AnyWordSpec with Matchers {
     "wrap database failures in ThreadInsertError" in {
       val outcome = (for {
         inserted <- Ref.of[SyncIO, List[InsertedThread]](Nil)
-        outcome  <- service(Some(staff), Some(recipient), Some(team), inserted, Some(new RuntimeException("boom")))
+        created  <- Ref.of[SyncIO, List[(Long, NewSdecRecipient)]](Nil)
+        outcome  <- service(
+                     Some(staff),
+                     Some(recipient),
+                     Some(team),
+                     inserted,
+                     created,
+                     insertError = Some(new RuntimeException("boom"))
+                   )
                      .insert(request)
                      .attempt
       } yield outcome).unsafeRunSync()
@@ -227,7 +259,8 @@ class ThreadServiceSpec extends AnyWordSpec with Matchers {
     "return the id from the data access layer" in {
       val result = (for {
         inserted <- Ref.of[SyncIO, List[InsertedThread]](Nil)
-        id       <- service(Some(staff), Some(recipient), Some(team), inserted).findIdByRef("ABCD12345")
+        created  <- Ref.of[SyncIO, List[(Long, NewSdecRecipient)]](Nil)
+        id       <- service(Some(staff), Some(recipient), Some(team), inserted, created).findIdByRef("ABCD12345")
       } yield id).unsafeRunSync()
 
       result mustBe Some(1L)
@@ -239,11 +272,13 @@ class ThreadServiceSpec extends AnyWordSpec with Matchers {
     "return thread information when NINO matches" in {
       val result = (for {
         inserted <- Ref.of[SyncIO, List[InsertedThread]](Nil)
+        created  <- Ref.of[SyncIO, List[(Long, NewSdecRecipient)]](Nil)
         result   <- service(
                     Some(staff),
                     Some(recipient),
                     Some(team),
-                    inserted
+                    inserted,
+                    created
                   ).getThreadInfoByThreadId("THREAD1000AA", jwtUser)
       } yield result).unsafeRunSync()
 
@@ -252,20 +287,17 @@ class ThreadServiceSpec extends AnyWordSpec with Matchers {
 
     "fail when JWT NINO does not match recipient NINO" in {
 
-      val invalidJwtUser =
-        JwtUser(
-          nino = "AB123456A",
-          confidenceLevel = 250
-        )
+      val invalidJwtUser = jwtUser.copy(nino = "AB123456A")
 
       val outcome = (for {
         inserted <- Ref.of[SyncIO, List[InsertedThread]](Nil)
-
-        result <- service(
+        created  <- Ref.of[SyncIO, List[(Long, NewSdecRecipient)]](Nil)
+        result   <- service(
                     Some(staff),
                     Some(recipient),
                     Some(team),
-                    inserted
+                    inserted,
+                    created
                   )
                     .getThreadInfoByThreadId(
                       "THREAD1000AA",
@@ -291,12 +323,13 @@ class ThreadServiceSpec extends AnyWordSpec with Matchers {
 
       val outcome = (for {
         inserted <- Ref.of[SyncIO, List[InsertedThread]](Nil)
-
-        result <- service(
+        created  <- Ref.of[SyncIO, List[(Long, NewSdecRecipient)]](Nil)
+        result   <- service(
                     Some(staff),
                     Some(recipient),
                     Some(team),
-                    inserted
+                    inserted,
+                    created
                   )
                     .getThreadInfoByThreadId(
                       "DOES_NOT_EXIST",
@@ -317,6 +350,83 @@ class ThreadServiceSpec extends AnyWordSpec with Matchers {
             s"Expected failure but got $value"
           )
       }
+    }
+
+    "reuse the existing recipient when internal IDs match" in {
+      val result = (for {
+        inserted <- Ref.of[SyncIO, List[InsertedThread]](Nil)
+        created  <- Ref.of[SyncIO, List[(Long, NewSdecRecipient)]](Nil)
+
+        response <- service(
+                      Some(staff),
+                      Some(recipient),
+                      Some(team),
+                      inserted,
+                      created
+                    ).getThreadInfoByThreadId("THREAD1000AA", jwtUser)
+
+        actualCreated <- created.get
+      } yield (response, actualCreated)).unsafeRunSync()
+
+      result._1.recipientDetails.email mustBe "user@test.com"
+      result._2 mustBe Nil
+    }
+
+    "create a new recipient when internal IDs differ" in {
+      val differentInternalIdUser =
+        jwtUser.copy(internalId = Some("INT999999"))
+
+      val result = (for {
+        inserted <- Ref.of[SyncIO, List[InsertedThread]](Nil)
+        created  <- Ref.of[SyncIO, List[(Long, NewSdecRecipient)]](Nil)
+
+        response <- service(
+                      Some(staff),
+                      Some(recipient),
+                      Some(team),
+                      inserted,
+                      created
+                    ).getThreadInfoByThreadId("THREAD1000AA", differentInternalIdUser)
+
+        actualCreated <- created.get
+      } yield (response, actualCreated)).unsafeRunSync()
+
+      result._1.recipientDetails.email mustBe "john.smith@example.com"
+
+      result._2 must have size 1
+      result._2.head._1 mustBe thread.id
+      result._2.head._2.internalId mustBe Some("INT999999")
+      result._2.head._2.email mustBe "john.smith@example.com"
+    }
+
+    "create and assign a recipient when the thread has no recipient" in {
+      val threadWithoutRecipient =
+        thread.copy(
+          recipientId = None,
+          nino = Some(jwtUser.nino)
+        )
+
+      val result = (for {
+        inserted <- Ref.of[SyncIO, List[InsertedThread]](Nil)
+        created  <- Ref.of[SyncIO, List[(Long, NewSdecRecipient)]](Nil)
+
+        response <- service(
+                      Some(staff),
+                      None,
+                      Some(team),
+                      inserted,
+                      created,
+                      existingThread = Some(threadWithoutRecipient)
+                    ).getThreadInfoByThreadId("THREAD1000AA", jwtUser)
+
+        actualCreated <- created.get
+      } yield (response, actualCreated)).unsafeRunSync()
+
+      result._1.recipientDetails.email mustBe "john.smith@example.com"
+
+      result._2 must have size 1
+      result._2.head._1 mustBe thread.id
+      result._2.head._2.nino mustBe jwtUser.nino
     }
   }
 }

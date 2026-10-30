@@ -54,6 +54,11 @@ class ThreadControllerSpec extends PlaySpec {
 
   private val validJwtUser =
     JwtUser(
+      internalId = Some("12345"),
+      firstName = Some("John"),
+      lastName = Some("Smith"),
+      email = Some("john.smith@example.com"),
+      phoneNumber = None,
       nino = "WM111111D",
       confidenceLevel = 250
     )
@@ -61,6 +66,11 @@ class ThreadControllerSpec extends PlaySpec {
   private val validToken =
     JwtJson.encode(
       Json.obj(
+        "internalId"      -> validJwtUser.internalId,
+        "firstName"       -> validJwtUser.firstName,
+        "lastName"        -> validJwtUser.lastName,
+        "email"           -> validJwtUser.email,
+        "phoneNumber"     -> None,
         "nino"            -> validJwtUser.nino,
         "confidenceLevel" -> validJwtUser.confidenceLevel
       ),
@@ -150,7 +160,7 @@ class ThreadControllerSpec extends PlaySpec {
 
       val controller = controllerWith(successfulThreadService)
 
-      val request = FakeRequest(GET, "/api/v1/customer/thread/THREAD1000AA")
+      val request = FakeRequest(PUT, "/api/v1/customer/thread/THREAD1000AA")
         .withHeaders("Authorization" -> s"Bearer $validToken")
 
       val result = call(controller.getThreadReference("THREAD1000AA"), request)
@@ -164,7 +174,7 @@ class ThreadControllerSpec extends PlaySpec {
 
       val controller = controllerWith(failingThreadService)
 
-      val request = FakeRequest(GET, "/api/v1/customer/thread/THREAD1000AA")
+      val request = FakeRequest(PUT, "/api/v1/customer/thread/THREAD1000AA")
         .withHeaders("Authorization" -> s"Bearer $validToken")
 
       val result = call(controller.getThreadReference("THREAD1000AA"), request)
@@ -178,7 +188,7 @@ class ThreadControllerSpec extends PlaySpec {
 
       val controller = controllerWith(successfulThreadService)
 
-      val request = FakeRequest(GET, "/api/v1/customer/thread/THREAD1000AA")
+      val request = FakeRequest(PUT, "/api/v1/customer/thread/THREAD1000AA")
 
       val result = call(controller.getThreadReference("THREAD1000AA"), request)
 

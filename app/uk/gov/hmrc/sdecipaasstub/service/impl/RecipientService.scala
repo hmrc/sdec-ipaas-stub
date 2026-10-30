@@ -19,7 +19,7 @@ package uk.gov.hmrc.sdecipaasstub.service.impl
 import cats.effect.Sync
 import cats.effect.kernel.Sync
 import uk.gov.hmrc.sdecipaasstub.hcp.algebra.RecipientDataAccessAlgebra
-import uk.gov.hmrc.sdecipaasstub.hcp.entity.SdecRecipient
+import uk.gov.hmrc.sdecipaasstub.hcp.entity.{NewSdecRecipient, SdecRecipient}
 import uk.gov.hmrc.sdecipaasstub.service.algebra.RecipientServiceAlgebra
 
 import javax.inject.Inject
@@ -32,4 +32,10 @@ class RecipientService[F[_]: Sync] @Inject() (
     recipientId: Long
   ): F[Option[SdecRecipient]] =
     recipientDataAccess.findById(recipientId)
+
+  override def createAndAssignToThread(
+    threadId:  Long,
+    recipient: NewSdecRecipient
+  ): F[SdecRecipient] =
+    recipientDataAccess.createAndAssignToThread(threadId, recipient)
 }
