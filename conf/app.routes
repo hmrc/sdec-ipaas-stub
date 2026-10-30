@@ -9,4 +9,4 @@ GET         /api/v1/thread/pid/:pid/team/:team      uk.gov.hmrc.sdecipaasstub.co
 POST        /api/v1/thread                          uk.gov.hmrc.sdecipaasstub.controllers.staff.ThreadController.insert()
 POST        /api/v1/thread/:threadRef/file          uk.gov.hmrc.sdecipaasstub.controllers.FileController.saveFile(threadRef: String)
 
-GET         /api/v1/customer/thread/:threadId     uk.gov.hmrc.sdecipaasstub.controllers.customer.ThreadController.getThreadReference(threadId: String)
+PUT         /api/v1/customer/thread/:threadId     uk.gov.hmrc.sdecipaasstub.controllers.customer.ThreadController.getThreadReference(threadId: String)

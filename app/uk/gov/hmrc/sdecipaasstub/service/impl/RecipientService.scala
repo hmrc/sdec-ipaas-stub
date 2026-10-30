@@ -18,30 +18,18 @@ package uk.gov.hmrc.sdecipaasstub.service.impl
 
 import cats.effect.Sync
 import cats.effect.kernel.Sync
-import cats.syntax.all.*
 import uk.gov.hmrc.sdecipaasstub.hcp.algebra.RecipientDataAccessAlgebra
 import uk.gov.hmrc.sdecipaasstub.hcp.entity.SdecRecipient
-import uk.gov.hmrc.sdecipaasstub.infrastructure.ApplicationLogger
 import uk.gov.hmrc.sdecipaasstub.service.algebra.RecipientServiceAlgebra
 
 import javax.inject.Inject
 
 class RecipientService[F[_]: Sync] @Inject() (
   recipientDataAccess: RecipientDataAccessAlgebra[F]
-) extends RecipientServiceAlgebra[F]
-    with ApplicationLogger[F] {
+) extends RecipientServiceAlgebra[F] {
 
   override def findRecipient(
     recipientId: Long
-  ): F[SdecRecipient] =
-    recipientDataAccess
-      .findById(recipientId)
-      .flatMap(
-        Sync[F].fromOption(
-          _,
-          new RuntimeException(
-            s"Recipient $recipientId not found"
-          )
-        )
-      )
+  ): F[Option[SdecRecipient]] =
+    recipientDataAccess.findById(recipientId)
 }

@@ -20,6 +20,6 @@ import uk.gov.hmrc.sdecipaasstub.hcp.entity.SdecRecipient
 
 trait RecipientServiceAlgebra[F[_]] {
 
-  def findRecipient(recipientId: Long): F[SdecRecipient]
+  def findRecipient(recipientId: Long): F[Option[SdecRecipient]]
 
 }

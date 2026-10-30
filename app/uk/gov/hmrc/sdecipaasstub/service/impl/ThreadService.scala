@@ -94,25 +94,22 @@ class ThreadService[F[_]: Sync] @Inject() (
     user:      JwtUser
   ): F[ThreadReference] =
     for {
-      _ <- logger.info(
-             s"Finding thread by reference: $threadRef"
-           )
-
+      _ <- logger.info(s"Finding thread by reference: $threadRef")
       thread <- findThread(threadRef)
-
       staff <- staffService.findStaff(thread.createdBy)
-
       recipientId <- Sync[F].fromOption(
                        thread.recipientId,
                        ThreadRecipientMissingError("Thread has no recipient")
                      )
-
-      recipient <- recipientService.findRecipient(recipientId)
-
+      recipientOption <- recipientService.findRecipient(recipientId)
+      recipient <- Sync[F].fromOption(
+        recipientOption,
+        ThreadRecipientMissingError(
+          s"Recipient $recipientId not found"
+        )
+      )
       createdTimestamp <- requireField(thread.createdTimestamp, "created timestamp")
-
       lastUpdatedTimestamp <- requireField(thread.lastUpdatedTimestamp, "last updated timestamp")
-
       threadExpiryDate <- requireField(thread.threadExpiryDate, "thread expiry date")
 
       _ <- validateUser(recipient, user)
@@ -182,9 +179,9 @@ class ThreadService[F[_]: Sync] @Inject() (
       threadOwner = None,
       owningTeam = Team(id = thread.teamId, srsName = ""),
       recipientDetails = RecipientDetails(
-        firstName = recipient.firstName,
-        lastName = recipient.lastName,
-        email = recipient.email,
+        firstName = recipient.firstName.getOrElse("No first name"),
+        lastName = recipient.lastName.getOrElse("No last name"),
+        email = recipient.email.getOrElse("No email"),
         phoneNumber = recipient.phoneNumber.getOrElse("No phone number"),
         nationalInsuranceNumber = recipient.nino,
         hasRelatedCase = thread.caseReference.isDefined,

@@ -87,9 +87,9 @@ class ThreadServiceSpec extends AnyWordSpec with Matchers {
     recipient: Option[SdecRecipient]
   ) extends RecipientServiceAlgebra[SyncIO] {
 
-    override def findRecipient(recipientId: Long): SyncIO[SdecRecipient] =
+    override def findRecipient(recipientId: Long): SyncIO[Option[SdecRecipient]] =
       recipient match {
-        case Some(found) => SyncIO.pure(found)
+        case Some(found) => SyncIO.pure(Option(found))
         case None        =>
           SyncIO.raiseError(
             new RuntimeException(s"Recipient $recipientId not found")
@@ -126,9 +126,9 @@ class ThreadServiceSpec extends AnyWordSpec with Matchers {
     SdecRecipient(
       id = 1,
       internalId = Some("12345"),
-      firstName = "John",
-      lastName = "Smith",
-      email = "user@test.com",
+      firstName = Some("John"),
+      lastName = Some("Smith"),
+      email = Some("user@test.com"),
       phoneNumber = None,
       nino = "WM111111D"
     )
