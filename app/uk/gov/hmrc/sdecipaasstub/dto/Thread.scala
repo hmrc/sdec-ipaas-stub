@@ -17,23 +17,23 @@
 package uk.gov.hmrc.sdecipaasstub.dto
 
 import play.api.libs.json.{JsResult, JsValue, Json, OFormat}
-import uk.gov.hmrc.sdecipaasstub.hcp.entity.ThreadStatus
+import uk.gov.hmrc.sdecipaasstub.hcp.entity.{SdecThread, ThreadStatus}
 
 import java.time.{LocalDate, LocalDateTime}
 
 final case class Thread(
-  reference:            String,
-  status:               ThreadStatus,
+  status:               Option[ThreadStatus],
   createdBy:            Long,
   createdTimestamp:     Option[LocalDateTime],
   lastUpdatedTimestamp: Option[LocalDateTime],
   threadExpiryDate:     Option[LocalDate],
+  requestedItems:       Option[String],
   caseReference:        Option[String],
   recipientId:          Option[Long],
-  email:                Option[Long],
-  nino:                 Option[Long],
+  email:                Option[String],
+  nino:                 Option[String],
   message:              Option[String],
-  requiredBy:           Option[String],
+  requiredBy:           Option[LocalDate],
   teamId:               Long
 )
 
@@ -41,3 +41,20 @@ object Thread:
   given format: OFormat[Thread] = Json.format[Thread]
 
   def fromJson(json: JsValue): JsResult[Thread] = json.validate[Thread]
+
+  def fromEntity(entity: SdecThread): Thread =
+    Thread(
+      status = Option(entity.status),
+      createdBy = entity.createdBy,
+      createdTimestamp = entity.createdTimestamp,
+      lastUpdatedTimestamp = entity.lastUpdatedTimestamp,
+      threadExpiryDate = entity.threadExpiryDate,
+      requestedItems = entity.requestedItems,
+      caseReference = entity.caseReference,
+      recipientId = entity.recipientId,
+      email = Some(entity.email),
+      nino = entity.nino,
+      message = entity.message,
+      requiredBy = entity.requiredBy,
+      teamId = entity.teamId
+    )
