@@ -1,0 +1,11 @@
+name: 1-Local
+color: "#2E8A54"
+variables:
+  - name: THREAD_REFERENCE
+    value: ""
+  - name: FILE_ID
+    value: ""
+  - name: STAFF_PID
+    value: "1001"
+  - name: TEAM
+    value: Child_Benefit

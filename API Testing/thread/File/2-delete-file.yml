@@ -1,5 +1,5 @@
 info:
-  name: Delete File
+  name: Delete file
   type: http
 
 http:

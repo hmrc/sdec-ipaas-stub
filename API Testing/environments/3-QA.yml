@@ -1,0 +1,11 @@
+name: 3-QA
+color: "#C77A0F"
+variables:
+  - name: THREAD_REFERENCE
+    value: ""
+  - name: FILE_ID
+    value: ""
+  - name: STAFF_PID
+    value: "1001"
+  - name: TEAM
+    value: Child_Benefit
