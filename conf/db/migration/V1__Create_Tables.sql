@@ -48,7 +48,7 @@ CREATE TABLE sdec_thread
     case_reference         VARCHAR(100)  DEFAULT NULL,
     recipient_id           BIGINT        DEFAULT NULL,
     email                  VARCHAR(255)  DEFAULT NULL,
-    name                   VARCHAR(255),
+    name                   VARCHAR(255)  DEFAULT NULL,
     nino                   VARCHAR(20)   DEFAULT NULL,
     message                VARCHAR(4000) DEFAULT NULL,
     required_by            DATE          DEFAULT NULL,

@@ -17,3 +17,13 @@
 package uk.gov.hmrc.sdecipaasstub.service.errors
 
 class ThreadInsertError(msg: String) extends RuntimeException(msg)
+
+class ThreadNotFoundError(msg: String) extends RuntimeException(msg)
+
+class ThreadRecipientMissingError(msg: String) extends RuntimeException(msg)
+
+class ThreadFieldMissingError(msg: String) extends RuntimeException(msg)
+
+class ThreadAccessDeniedError(msg: String) extends RuntimeException(msg)
+
+class JwtFieldMissingError(msg: String) extends RuntimeException(msg)

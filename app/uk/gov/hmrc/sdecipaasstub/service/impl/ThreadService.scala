@@ -19,22 +19,23 @@ package uk.gov.hmrc.sdecipaasstub.service.impl
 import cats.effect.Sync
 import cats.effect.kernel.Sync
 import cats.syntax.all.*
-import uk.gov.hmrc.sdecipaasstub.dto
-import uk.gov.hmrc.sdecipaasstub.dto.{CreateThreadRequest, ThreadResponse, ThreadSummary}
+import uk.gov.hmrc.sdecipaasstub.dto.*
 import uk.gov.hmrc.sdecipaasstub.hcp.algebra.ThreadDataAccessAlgebra
 import uk.gov.hmrc.sdecipaasstub.hcp.entity.ThreadStatus.PENDING
-import uk.gov.hmrc.sdecipaasstub.infrastructure.ApplicationLogger
-import uk.gov.hmrc.sdecipaasstub.service.algebra.{StaffServiceAlgebra, TeamServiceAlgebra, ThreadServiceAlgebra}
+import uk.gov.hmrc.sdecipaasstub.hcp.entity.{NewSdecRecipient, SdecRecipient, SdecStaff, SdecThread}
+import uk.gov.hmrc.sdecipaasstub.infrastructure.{ApplicationLogger, JwtUser}
+import uk.gov.hmrc.sdecipaasstub.service.algebra.{RecipientServiceAlgebra, StaffServiceAlgebra, TeamServiceAlgebra, ThreadServiceAlgebra}
 import uk.gov.hmrc.sdecipaasstub.service.errors.*
 
-import java.time.{LocalDateTime, ZoneOffset}
+import java.time.{LocalDate, LocalDateTime, ZoneOffset}
 import javax.inject.Inject
 import scala.util.Random
 
 class ThreadService[F[_]: Sync] @Inject() (
   threadDataAccess: ThreadDataAccessAlgebra[F],
   teamService:      TeamServiceAlgebra[F],
-  staffService:     StaffServiceAlgebra[F]
+  staffService:     StaffServiceAlgebra[F],
+  recipientService: RecipientServiceAlgebra[F]
 ) extends ThreadServiceAlgebra[F]
     with ApplicationLogger[F] {
 
@@ -87,4 +88,163 @@ class ThreadService[F[_]: Sync] @Inject() (
       val digits  = List.fill(5)(Random.nextInt(10)).mkString
       letters + digits
     }
+
+  override def getThreadInfoByThreadId(
+    threadRef: String,
+    user:      JwtUser
+  ): F[ThreadReference] =
+    for {
+      _                    <- logger.info(s"Finding thread by reference: $threadRef")
+      thread               <- findThread(threadRef)
+      staff                <- staffService.findStaff(thread.createdBy)
+      recipient            <- resolveRecipient(thread, user)
+      createdTimestamp     <- requireField(thread.createdTimestamp, "created timestamp")
+      lastUpdatedTimestamp <- requireField(thread.lastUpdatedTimestamp, "last updated timestamp")
+      threadExpiryDate     <- requireField(thread.threadExpiryDate, "thread expiry date")
+    } yield convertToDto(
+      thread,
+      staff,
+      recipient,
+      createdTimestamp,
+      lastUpdatedTimestamp,
+      threadExpiryDate
+    )
+
+  private def findThread(
+    threadRef: String
+  ): F[SdecThread] =
+    threadDataAccess
+      .findByRef(threadRef)
+      .flatMap(
+        Sync[F].fromOption(
+          _,
+          ThreadNotFoundError(s"Thread $threadRef not found")
+        )
+      )
+
+  private def validateUser(
+    recipient: SdecRecipient,
+    user:      JwtUser
+  ): F[Unit] =
+    if recipient.nino == user.nino then {
+      Sync[F].unit
+    } else {
+      Sync[F].raiseError(
+        ThreadAccessDeniedError("User details do not match recipient")
+      )
+    }
+
+  private def requireField[A](
+    value:     Option[A],
+    fieldName: String
+  ): F[A] =
+    Sync[F].fromOption(
+      value,
+      ThreadFieldMissingError(s"Missing $fieldName")
+    )
+
+  private def convertToDto(
+    thread:               SdecThread,
+    staff:                SdecStaff,
+    recipient:            SdecRecipient,
+    createdTimestamp:     LocalDateTime,
+    lastUpdatedTimestamp: LocalDateTime,
+    threadExpiryDate:     LocalDate
+  ): ThreadReference =
+    ThreadReference(
+      id = thread.reference,
+      status = thread.status,
+      createdBy = StaffDetails(
+        id = staff.id,
+        pid = staff.pid,
+        name = staff.name
+      ),
+      createdTimeStamp = createdTimestamp,
+      lastUpdatedTimeStamp = lastUpdatedTimestamp,
+      threadExpiryDate = threadExpiryDate,
+      associatedCaseReference = thread.caseReference.getOrElse(""),
+      threadOwner = None,
+      owningTeam = Team(id = thread.teamId, srsName = ""),
+      recipientDetails = RecipientDetails(
+        firstName = recipient.firstName.getOrElse("No first name"),
+        lastName = recipient.lastName.getOrElse("No last name"),
+        email = recipient.email.getOrElse("No email"),
+        phoneNumber = recipient.phoneNumber.getOrElse("No phone number"),
+        nationalInsuranceNumber = recipient.nino,
+        hasRelatedCase = thread.caseReference.isDefined,
+        caseReferenceNumber = thread.caseReference
+      ),
+      threadDetails = ThreadDetails(
+        message = thread.message.getOrElse(""),
+        responseDate = thread.requiredBy.getOrElse(threadExpiryDate)
+      )
+    )
+
+  private def resolveRecipient(
+    thread: SdecThread,
+    user:   JwtUser
+  ): F[SdecRecipient] =
+    for {
+      existingRecipient <- thread.recipientId match {
+                             case Some(id) =>
+                               recipientService.findRecipient(id)
+
+                             case None =>
+                               Sync[F].pure(None)
+                           }
+
+      _ <- existingRecipient match {
+             case Some(recipient) =>
+               validateUser(recipient, user)
+
+             case None =>
+               Sync[F].raiseUnless(
+                 thread.nino.contains(user.nino)
+               )(ThreadAccessDeniedError("User is not authorised to access this thread"))
+           }
+
+      internalId <- Sync[F].fromOption(
+                      user.internalId.filter(_.trim.nonEmpty),
+                      ThreadFieldMissingError("JWT is missing internalId")
+                    )
+
+      recipient <- existingRecipient match {
+                     case Some(existing) if existing.internalId.contains(internalId) =>
+                       Sync[F].pure(existing)
+
+                     case _ =>
+                       createAndAssignRecipient(thread.id, user, internalId)
+                   }
+    } yield recipient
+
+  private def createAndAssignRecipient(
+    threadId:   Long,
+    user:       JwtUser,
+    internalId: String
+  ): F[SdecRecipient] =
+    for {
+      firstName <- Sync[F].fromOption(
+                     user.firstName.filter(_.trim.nonEmpty),
+                     JwtFieldMissingError("JWT is missing firstName")
+                   )
+      lastName <- Sync[F].fromOption(
+                    user.lastName.filter(_.trim.nonEmpty),
+                    JwtFieldMissingError("JWT is missing lastName")
+                  )
+      email <- Sync[F].fromOption(
+                 user.email.filter(_.trim.nonEmpty),
+                 JwtFieldMissingError("JWT is missing email")
+               )
+      recipient <- recipientService.createAndAssignToThread(
+                     threadId,
+                     NewSdecRecipient(
+                       internalId = Some(internalId),
+                       firstName = firstName,
+                       lastName = lastName,
+                       email = email,
+                       phoneNumber = user.phoneNumber,
+                       nino = user.nino
+                     )
+                   )
+    } yield recipient
 }
