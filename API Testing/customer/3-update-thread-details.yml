@@ -1,0 +1,40 @@
+info:
+  name: Update Thread Details
+  type: http
+  seq: 3
+
+http:
+  method: PUT
+  url: "{{HOST}}/sdec-ipaas-stub/api/v1/external/thread/:thread-reference"
+  headers:
+    - name: Content-Type
+      value: application/json
+  params:
+    - name: thread-reference
+      value: "{{THREAD_REFERENCE}}"
+      type: path
+  body:
+    type: json
+    data: |-
+      {
+        "message": "I have attached my P45 and P60.",
+        "respondedItems": [
+          "P45",
+          "P60 for 2025"
+        ]
+      }
+
+runtime:
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "200"
+    - expression: res.body
+      operator: isJson
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: true

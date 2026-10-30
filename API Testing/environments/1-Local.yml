@@ -1,6 +1,8 @@
 name: 1-Local
 color: "#2E8A54"
 variables:
+  - name: HOST
+    value: http://localhost:4999
   - name: THREAD_REFERENCE
     value: ""
   - name: FILE_ID

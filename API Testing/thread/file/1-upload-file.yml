@@ -1,0 +1,45 @@
+info:
+  name: Upload file
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{HOST}}/sdec-ipaas-stub/api/v1/thread/:thread-reference/file"
+  params:
+    - name: thread-reference
+      value: "{{THREAD_REFERENCE}}"
+      type: path
+  body:
+    type: json
+    data: |-
+      {
+        "filename": "file.txt",
+        "filesize": 1234456,
+        "filetype": "text/txt",
+        "s3Bucket": "bucket123",
+        "objectKey": "/uploads/{{THREAD_REFERENCE}}/file.txt",
+        "etag": "4f8894d7eae7cc9c686872c5da5b3e98"
+      }
+  auth: none
+
+runtime:
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "200"
+    - expression: res.body
+      operator: isJson
+    - expression: res.body.filename
+      operator: eq
+      value: file.txt
+    - expression: res.body.objectKey
+      operator: contains
+      value: "{{THREAD_REFERENCE}}"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: true

@@ -1,11 +1,11 @@
 info:
-  name: Health Check
+  name: Health check
   type: http
   seq: 1
 
 http:
   method: GET
-  url: http://localhost:4999/ping/ping
+  url: "{{HOST}}/ping/ping"
 
 runtime:
   assertions:

@@ -1,6 +1,8 @@
 name: 3-QA
 color: "#C77A0F"
 variables:
+  - name: HOST
+    value: https://api.qa.tax.service.gov.uk
   - name: THREAD_REFERENCE
     value: ""
   - name: FILE_ID

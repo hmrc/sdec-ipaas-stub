@@ -1,0 +1,31 @@
+info:
+  name: Create thread with missing field
+  type: http
+  seq: 7
+
+http:
+  method: POST
+  url: "{{HOST}}/sdec-ipaas-stub/api/v1/thread"
+  body:
+    type: json
+    data: |-
+      {
+        "pid": "{{STAFF_PID}}"
+      }
+
+runtime:
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "400"
+    - expression: res.body
+      operator: isJson
+    - expression: res.body.error
+      operator: isDefined
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: true

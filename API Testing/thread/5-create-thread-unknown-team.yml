@@ -1,0 +1,33 @@
+info:
+  name: Create thread with unknown team
+  type: http
+  seq: 5
+
+http:
+  method: POST
+  url: "{{HOST}}/sdec-ipaas-stub/api/v1/thread"
+  body:
+    type: json
+    data: |-
+      {
+        "pid": "{{STAFF_PID}}",
+        "team": "No_Such_Team"
+      }
+
+runtime:
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "400"
+    - expression: res.body
+      operator: isJson
+    - expression: res.body.error[0]
+      operator: eq
+      value: No team found with name No_Such_Team
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: true

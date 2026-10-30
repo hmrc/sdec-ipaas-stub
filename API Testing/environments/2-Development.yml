@@ -1,6 +1,8 @@
-name: 1-Development
+name: 2-Development
 color: "#f1b26f"
 variables:
+  - name: HOST
+    value: https://api.development.tax.service.gov.uk
   - name: THREAD_REFERENCE
     value: ""
   - name: FILE_ID
