@@ -38,6 +38,9 @@ class StaffServiceSpec extends AnyWordSpec with Matchers {
 
     override def insert(staff: Staff): IO[Long] =
       insertedStaff.update(_ :+ staff).as(100L)
+
+    override def findById(id: Long): IO[Option[SdecStaff]] =
+      IO.pure(existingStaff)
   }
 
   final class StubTeamService(

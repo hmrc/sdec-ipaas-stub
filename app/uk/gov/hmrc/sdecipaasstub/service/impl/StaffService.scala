@@ -17,6 +17,7 @@
 package uk.gov.hmrc.sdecipaasstub.service.impl
 
 import cats.effect.Sync
+import cats.effect.kernel.Sync
 import cats.syntax.all.*
 import uk.gov.hmrc.sdecipaasstub.dto.{Staff, StaffTeam, StaffTeams, StaffUpdate}
 import uk.gov.hmrc.sdecipaasstub.hcp.algebra.StaffDataAccessAlgebra
@@ -118,4 +119,16 @@ class StaffService[F[_]: Sync] @Inject() (
   override def findByPid(pid: String): F[Option[SdecStaff]] =
     logger.info(s"Finding Staff by PID $pid") *>
       staffDataAccess.findByPID(pid)
+
+  override def findStaff(staffId: Long): F[SdecStaff] =
+    staffDataAccess
+      .findById(staffId)
+      .flatMap(
+        Sync[F].fromOption(
+          _,
+          new RuntimeException(
+            s"Staff $staffId not found"
+          )
+        )
+      )
 }

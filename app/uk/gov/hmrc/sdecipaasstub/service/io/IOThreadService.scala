@@ -18,7 +18,7 @@ package uk.gov.hmrc.sdecipaasstub.service.io
 
 import cats.effect.IO
 import uk.gov.hmrc.sdecipaasstub.hcp.algebra.ThreadDataAccessAlgebra
-import uk.gov.hmrc.sdecipaasstub.service.algebra.{StaffServiceAlgebra, TeamServiceAlgebra}
+import uk.gov.hmrc.sdecipaasstub.service.algebra.{RecipientServiceAlgebra, StaffServiceAlgebra, TeamServiceAlgebra}
 import uk.gov.hmrc.sdecipaasstub.service.impl.ThreadService
 
 import javax.inject.{Inject, Singleton}
@@ -27,5 +27,6 @@ import javax.inject.{Inject, Singleton}
 class IOThreadService @Inject() (
   threadDataAccess: ThreadDataAccessAlgebra[IO],
   teamService:      TeamServiceAlgebra[IO],
-  staffService:     StaffServiceAlgebra[IO]
-) extends ThreadService[IO](threadDataAccess, teamService, staffService) {}
+  staffService:     StaffServiceAlgebra[IO],
+  recipientService: RecipientServiceAlgebra[IO]
+) extends ThreadService[IO](threadDataAccess, teamService, staffService, recipientService) {}
