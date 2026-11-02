@@ -1,0 +1,19 @@
+info:
+  name: Thread
+  type: folder
+  seq: 2
+
+request:
+  auth: none
+
+  scripts:
+    - type: before-request
+      code: |-
+        const helpers = require('./_lib/helpers.js');
+
+        const firstName = helpers.randomFirstName();
+        const surname = helpers.randomSurname();
+
+        bru.setVar("FIRST_NAME", firstName);
+        bru.setVar("SURNAME", surname);
+        bru.setVar("EMAIL", helpers.emailFor(firstName, surname));

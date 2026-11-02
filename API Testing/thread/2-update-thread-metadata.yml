@@ -1,0 +1,54 @@
+info:
+  name: Update thread metadata
+  type: http
+  seq: 2
+
+http:
+  method: POST
+  url: "{{HOST}}/sdec-ipaas-stub/api/v1/thread/:thread-reference"
+  params:
+    - name: thread-reference
+      value: "{{THREAD_REFERENCE}}"
+      type: path
+  body:
+    type: json
+    data: |-
+      {
+        "firstName": "{{FIRST_NAME}}",
+        "surname": "{{SURNAME}}",
+        "email": "{{EMAIL}}",
+        "mobile": null,
+        "nino": "WM112233C",
+        "caseReference": "CASE1",
+        "requestedItems": [
+          "P45",
+          "P60 for 2025"
+        ],
+        "message": "Where are the files?",
+        "requestedBy": {
+          "day": 22,
+          "month": 12,
+          "year": 2027
+        }
+      }
+
+runtime:
+  scripts:
+    - type: before-request
+      code: |-
+        if (!bru.getVar("THREAD_REFERENCE")) {
+          throw new Error("No thread reference. Run 'Create thread' first.");
+        }
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "200"
+    - expression: res.body
+      operator: isJson
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: true

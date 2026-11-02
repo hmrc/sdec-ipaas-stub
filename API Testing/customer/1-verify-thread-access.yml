@@ -1,0 +1,51 @@
+info:
+  name: Verify Thread Access
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{HOST}}/sdec-ipaas-stub/api/v1/external/thread/:thread-reference/verify"
+  headers:
+    - name: Content-Type
+      value: application/json
+  params:
+    - name: thread-reference
+      value: "{{THREAD_REFERENCE}}"
+      type: path
+  body:
+    type: json
+    data: |-
+      {
+        "nino": "WM112233C",
+        "email": "js@example.com",
+        "providerType": "ONE_LOGIN",
+        "providerId": "urn:fdc:gov.uk:2022:example"
+      }
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        if (res.status === 200) {
+          bru.setVar("access-decision", res.body.decision);
+        }
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "200"
+    - expression: res.headers['content-type']
+      operator: contains
+      value: application/json
+    - expression: res.body.decision
+      operator: isDefined
+    - expression: res.body.threadReference
+      operator: eq
+      value: "{{THREAD_REFERENCE}}"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: true

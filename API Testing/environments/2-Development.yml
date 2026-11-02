@@ -1,0 +1,13 @@
+name: 2-Development
+color: "#f1b26f"
+variables:
+  - name: HOST
+    value: https://api.development.tax.service.gov.uk
+  - name: THREAD_REFERENCE
+    value: ""
+  - name: FILE_ID
+    value: ""
+  - name: STAFF_PID
+    value: "1001"
+  - name: TEAM
+    value: Child_Benefit
