@@ -21,7 +21,7 @@ import uk.gov.hmrc.sdecipaasstub.hcp.entity.ThreadStatus
 
 import java.time.{LocalDate, LocalDateTime}
 
-case class ThreadReference(
+final case class ThreadReference(
   id:                      String,
   status:                  ThreadStatus,
   createdBy:               StaffDetails,

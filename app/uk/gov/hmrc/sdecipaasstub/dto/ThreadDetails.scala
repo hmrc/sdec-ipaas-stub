@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.sdecipaasstub.dto
 
-import play.api.libs.json.{Json, OFormat}
+import play.api.libs.json.*
 
 import java.time.LocalDate
 
@@ -26,5 +26,5 @@ final case class ThreadDetails(
 )
 
 object ThreadDetails {
-  implicit val format: OFormat[ThreadDetails] = Json.format[ThreadDetails]
+  given format: OFormat[ThreadDetails] = Json.format[ThreadDetails]
 }
