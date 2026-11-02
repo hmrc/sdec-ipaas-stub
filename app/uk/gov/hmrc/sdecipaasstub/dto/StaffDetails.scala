@@ -25,5 +25,5 @@ final case class StaffDetails(
 )
 
 object StaffDetails {
-  implicit val format: OFormat[StaffDetails] = Json.format[StaffDetails]
+  given format: OFormat[StaffDetails] = Json.format[StaffDetails]
 }
