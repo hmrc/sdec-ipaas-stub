@@ -1,0 +1,40 @@
+info:
+  name: Submit thread
+  type: http
+  seq: 3
+
+http:
+  method: PUT
+  url: "{{HOST}}/sdec-ipaas-stub/api/v1/thread/:thread-reference/submit"
+  params:
+    - name: thread-reference
+      value: "{{THREAD_REFERENCE}}"
+      type: path
+  headers:
+    - name: Content-Type
+      value: application/json
+  body:
+    type: json
+    data: |-
+      {
+        "submittedBy": "{{STAFF_PID}}"
+      }
+
+runtime:
+  scripts:
+    - type: before-request
+      code: |-
+        if (!bru.getVar("THREAD_REFERENCE")) {
+          throw new Error("No thread reference. Run 'Create thread' first.");
+        }
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "200"
+    - expression: res.body
+      operator: isJson
+    - expression: res.body.threadReference
+      operator: eq
+      value: "{{THREAD_REFERENCE}}"
+    - expression: res.body.status
+      operator: eq
