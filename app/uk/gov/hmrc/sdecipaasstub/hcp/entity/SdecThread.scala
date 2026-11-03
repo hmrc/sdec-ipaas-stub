@@ -26,6 +26,7 @@ final case class SdecThread(
   createdTimestamp:     Option[LocalDateTime],
   lastUpdatedTimestamp: Option[LocalDateTime],
   threadExpiryDate:     Option[LocalDate],
+  requestedItems:       Option[String],
   caseReference:        Option[String],
   recipientId:          Option[Long],
   email:                String,

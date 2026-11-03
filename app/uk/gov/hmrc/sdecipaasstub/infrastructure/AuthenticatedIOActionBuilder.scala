@@ -34,6 +34,13 @@ class AuthenticatedIOActionBuilder @Inject() (
 
   private val secret = "secretKey"
 
+  def asyncIOJsValue(
+    block: Request[JsValue] => IO[Result]
+  ): Action[JsValue] =
+    Action.async(cc.parsers.json) { request =>
+      block(request).unsafeToFuture()(runtime)
+    }
+
   def asyncIO(
     block: AuthenticatedRequest[AnyContent] => IO[Result]
   ): Action[AnyContent] =

@@ -24,8 +24,10 @@ import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import uk.gov.hmrc.sdecipaasstub.controllers.staff.ThreadController
-import uk.gov.hmrc.sdecipaasstub.dto.{CreateThreadRequest, ThreadReference, ThreadResponse, ThreadSummary}
-import uk.gov.hmrc.sdecipaasstub.infrastructure.{IOActionBuilder, JwtUser}
+import uk.gov.hmrc.sdecipaasstub.dto.ThreadReference
+import uk.gov.hmrc.sdecipaasstub.dto.{CreateThreadRequest, RequestedBy, ThreadResponse, ThreadSummary, ThreadUpdate}
+import uk.gov.hmrc.sdecipaasstub.infrastructure.IOActionBuilder
+import uk.gov.hmrc.sdecipaasstub.infrastructure.JwtUser
 import uk.gov.hmrc.sdecipaasstub.service.algebra.ThreadServiceAlgebra
 import uk.gov.hmrc.sdecipaasstub.service.errors.{StaffLookupError, TeamLookupError}
 
@@ -60,6 +62,9 @@ class ThreadControllerSpec extends PlaySpec {
       IO.pure(Some(1L))
 
     override def findThreadsForWorkspace(pid: String, teamName: String): IO[List[ThreadSummary]] = IO.pure(List())
+
+    override def updateThreadAndRecipient(threadUpdate: ThreadUpdate, threadRef: String): IO[ThreadUpdate] =
+      IO.pure(ThreadUpdate(Some(""), None, None, None, None, None, List("a", "b"), "", RequestedBy(20, 2, 1992)))
 
     override def getThreadInfoByThreadId(
       threadId: String,
