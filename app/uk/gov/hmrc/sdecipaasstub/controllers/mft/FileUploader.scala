@@ -19,9 +19,7 @@ package uk.gov.hmrc.sdecipaasstub.controllers.mft
 import jakarta.inject.{Inject, Singleton}
 import play.api.Logging
 import play.api.libs.Files.TemporaryFile
-import play.api.libs.json.Json
 import play.api.mvc.*
-import uk.gov.hmrc.sdecipaasstub.dto.FileMetadata
 
 import java.nio.file.Files
 import java.security.MessageDigest
@@ -55,7 +53,8 @@ class FileUploader @Inject() (
   private def redirectAfterUpload(url: String, file: MultipartFormData.FilePart[TemporaryFile], bucket: String)(using
     request: Request[MultipartFormData[TemporaryFile]]
   ) = {
-    val key = request.body.dataParts.get("key").flatMap(_.headOption).map(_.split("/").head).getOrElse("No Object Key Defined")
+    val key =
+      request.body.dataParts.get("key").flatMap(_.headOption).map(_.split("/").head).getOrElse("No Object Key Defined")
     val etag         = calculateETag(file.ref.path)
     val fileMetaData = Map(
       "key"         -> Seq(key),
