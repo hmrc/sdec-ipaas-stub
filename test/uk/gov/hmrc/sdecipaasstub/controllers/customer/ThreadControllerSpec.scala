@@ -29,7 +29,7 @@ import uk.gov.hmrc.sdecipaasstub.hcp.entity.ThreadStatus
 import uk.gov.hmrc.sdecipaasstub.infrastructure.{AuthenticatedIOActionBuilder, JwtUser}
 import uk.gov.hmrc.sdecipaasstub.service.algebra.ThreadServiceAlgebra
 
-import java.time.{LocalDate, LocalDateTime}
+import java.time.{Instant, LocalDate, LocalDateTime}
 import scala.concurrent.ExecutionContextExecutor
 
 class ThreadControllerSpec extends PlaySpec {
@@ -109,6 +109,31 @@ class ThreadControllerSpec extends PlaySpec {
         message = "Where are the files?",
         responseDate = LocalDate.now.plusMonths(1)
       )
+    )
+
+  private val expiredToken =
+    Jwt.encode(
+      JwtClaim(
+        content = Json
+          .obj(
+            "internalId"      -> validJwtUser.internalId,
+            "firstName"       -> validJwtUser.firstName,
+            "lastName"        -> validJwtUser.lastName,
+            "email"           -> validJwtUser.email,
+            "phoneNumber"     -> None,
+            "nino"            -> validJwtUser.nino,
+            "confidenceLevel" -> validJwtUser.confidenceLevel
+          )
+          .toString(),
+        expiration = Some(
+          Instant
+            .now()
+            .minusSeconds(3600)
+            .getEpochSecond
+        )
+      ),
+      "secretKey",
+      JwtAlgorithm.HS256
     )
 
   private def stubThreadService(
@@ -196,6 +221,34 @@ class ThreadControllerSpec extends PlaySpec {
       val result = call(controller.getThreadReference("THREAD1000AA"), request)
 
       status(result) mustBe UNAUTHORIZED
+    }
+
+    "return Unauthorized when bearer token is invalid" in {
+
+      val controller = controllerWith(successfulThreadService)
+
+      val request = FakeRequest(GET, "/api/v1/customer/thread/THREAD1000AA")
+        .withHeaders("Authorization" -> "Bearer invalid-token")
+
+      val result = call(controller.getThreadReference("THREAD1000AA"), request)
+
+      status(result) mustBe UNAUTHORIZED
+
+      contentAsJson(result) mustBe Json.obj("message" -> "Invalid bearer token")
+    }
+
+    "return Unauthorized when bearer token has expired" in {
+
+      val controller = controllerWith(successfulThreadService)
+
+      val request = FakeRequest(GET, "/api/v1/customer/thread/THREAD1000AA")
+        .withHeaders("Authorization" -> s"Bearer $expiredToken")
+
+      val result = call(controller.getThreadReference("THREAD1000AA"), request)
+
+      status(result) mustBe UNAUTHORIZED
+
+      contentAsJson(result) mustBe Json.obj("message" -> "Invalid bearer token")
     }
   }
 }

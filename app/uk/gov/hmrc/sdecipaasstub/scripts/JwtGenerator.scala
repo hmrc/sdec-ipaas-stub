@@ -21,25 +21,41 @@ import pdi.jwt.*
 import play.api.libs.json.Json
 import uk.gov.hmrc.sdecipaasstub.infrastructure.ApplicationLogger
 
+import java.time.Instant
+
 object JwtGenerator extends IOApp.Simple with ApplicationLogger[IO] {
 
   override def run: IO[Unit] = {
+    val claim =
+      JwtClaim(
+        Json
+          .obj(
+            "internalId"      -> "12345",
+            "firstName"       -> "John",
+            "lastName"        -> "Smith",
+            "email"           -> "john.smith@example.com",
+            "phoneNumber"     -> None,
+            "nino"            -> "WM111111D",
+            "confidenceLevel" -> 250
+          )
+          .toString(),
+        expiration = Some(
+          Instant
+            .now()
+            .plusSeconds(3600)
+            .getEpochSecond
+        )
+      )
+
     val token =
-      JwtJson.encode(
-        Json.obj(
-          "internalId"      -> "12345",
-          "firstName"       -> "John",
-          "lastName"        -> "Smith",
-          "email"           -> "john.smith@example.com",
-          "phoneNumber"     -> None,
-          "nino"            -> "WM111111D",
-          "confidenceLevel" -> 250
-        ),
+      Jwt.encode(
+        claim,
         "secretKey",
         JwtAlgorithm.HS256
       )
 
     // Run sbt "runMain uk.gov.hmrc.sdecipaasstub.scripts.JwtGenerator" in terminal
     logger.info(s"Generating JWT Token: $token")
+
   }
 }
