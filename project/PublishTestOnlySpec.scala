@@ -10,9 +10,11 @@ object PublishTestOnlySpec {
       val targetDir  = baseDirectory.value / "resources/public/api/conf/1.0/testOnly"
       val targetFile = targetDir / "application.yaml"
 
-      if !sourceFile.exists then {
+      // @formatter:off
+      if (!sourceFile.exists) {
         sys.error(s"Source file not found: ${sourceFile.getAbsolutePath}")
       }
+      // @formatter:on
 
       IO.createDirectory(targetDir)
       IO.copyFile(sourceFile, targetFile)

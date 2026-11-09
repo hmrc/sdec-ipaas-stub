@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: SDEC iPaaS Stub
-  description: Stub of the SDEC iPaaS API for threads, staff and file metadata.
+  description: Stub of the SDEC iPaaS API and HCP for threads, staff and file metadata.
   version: "1.0"
 servers:
   - url: https://test-api.service.hmrc.gov.uk
