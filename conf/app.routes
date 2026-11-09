@@ -1,14 +1,194 @@
 # microservice specific routes
 
-POST        /api/v1/staff                           uk.gov.hmrc.sdecipaasstub.controllers.StaffController.insert()
-PUT         /api/v1/staff                           uk.gov.hmrc.sdecipaasstub.controllers.StaffController.updateOrInsert()
+###
+# summary: Create or insert a staff member
+# operationId: createStaff
+# tags:
+#   - Staff
+# requestBody:
+#   required: true
+#   content:
+#     application/json:
+#       schema:
+#         $ref: '#/components/schemas/uk.gov.hmrc.sdecipaasstub.dto.Staff'
+# responses:
+#   200:
+#     description: Staff member saved
+#   400:
+#     description: Invalid request body
+#     content:
+#       application/json:
+#         schema:
+#           $ref: '#/components/schemas/uk.gov.hmrc.sdecipaasstub.dto.ErrorMessage'
+###
+POST  /api/v1/staff  uk.gov.hmrc.sdecipaasstub.controllers.StaffController.insert()
 
-POST        /api/v1/thread/:threadRef/file          uk.gov.hmrc.sdecipaasstub.controllers.FileController.saveFile(threadRef: String)
-GET         /api/v1/thread/pid/:pid/team/:team      uk.gov.hmrc.sdecipaasstub.controllers.staff.ThreadController.getThreadsForWorkspace(pid: String, team: String)
+###
+# summary: Update or insert a staff member
+# operationId: upsertStaff
+# tags:
+#   - Staff
+# requestBody:
+#   required: true
+#   content:
+#     application/json:
+#       schema:
+#         $ref: '#/components/schemas/uk.gov.hmrc.sdecipaasstub.dto.StaffUpdate'
+# responses:
+#   200:
+#     description: Staff member saved
+#   400:
+#     description: Invalid request body
+#     content:
+#       application/json:
+#         schema:
+#           $ref: '#/components/schemas/uk.gov.hmrc.sdecipaasstub.dto.ErrorMessage'
+###
+PUT  /api/v1/staff  uk.gov.hmrc.sdecipaasstub.controllers.StaffController.updateOrInsert()
 
-POST        /api/v1/thread                          uk.gov.hmrc.sdecipaasstub.controllers.staff.ThreadController.insert()
-POST        /api/v1/thread/:threadRef/file          uk.gov.hmrc.sdecipaasstub.controllers.FileController.saveFile(threadRef: String)
-PUT         /api/v1/thread/:threadRef               uk.gov.hmrc.sdecipaasstub.controllers.customer.ThreadController.updateThread(threadRef: String)
-PUT         /api/v1/customer/thread/:threadId       uk.gov.hmrc.sdecipaasstub.controllers.customer.ThreadController.getThreadReference(threadId: String)
+###
+# summary: List threads for a workspace
+# operationId: listWorkspaceThreads
+# tags:
+#   - Thread
+# parameters:
+#   - name: pid
+#     in: path
+#     required: true
+#     schema:
+#       type: string
+#   - name: team
+#     in: path
+#     required: true
+#     schema:
+#       type: string
+# responses:
+#   200:
+#     description: Threads in the workspace
+#     content:
+#       application/json:
+#         schema:
+#           type: array
+#           items:
+#             $ref: '#/components/schemas/uk.gov.hmrc.sdecipaasstub.dto.ThreadSummary'
+###
+GET  /api/v1/thread/pid/:pid/team/:team  uk.gov.hmrc.sdecipaasstub.controllers.staff.ThreadController.getThreadsForWorkspace(pid: String, team: String)
 
-POST        /file-upload/:bucket                    uk.gov.hmrc.sdecipaasstub.controllers.mft.FileUploader.postUpload(bucket: String)
+###
+# summary: Create a thread
+# operationId: createThread
+# tags:
+#   - Thread
+# requestBody:
+#   required: true
+#   content:
+#     application/json:
+#       schema:
+#         $ref: '#/components/schemas/uk.gov.hmrc.sdecipaasstub.dto.CreateThreadRequest'
+# responses:
+#   200:
+#     description: Thread created
+#     content:
+#       application/json:
+#         schema:
+#           $ref: '#/components/schemas/uk.gov.hmrc.sdecipaasstub.dto.ThreadResponse'
+#   400:
+#     description: Invalid body, unknown staff member or unknown team
+#     content:
+#       application/json:
+#         schema:
+#           $ref: '#/components/schemas/uk.gov.hmrc.sdecipaasstub.dto.ErrorMessage'
+###
+POST  /api/v1/thread  uk.gov.hmrc.sdecipaasstub.controllers.staff.ThreadController.insert()
+
+###
+# summary: Attach file metadata to a thread
+# operationId: saveThreadFile
+# tags:
+#   - File
+# parameters:
+#   - name: threadRef
+#     in: path
+#     required: true
+#     schema:
+#       type: string
+# requestBody:
+#   required: true
+#   content:
+#     application/json:
+#       schema:
+#         $ref: '#/components/schemas/uk.gov.hmrc.sdecipaasstub.dto.FileMetadata'
+# responses:
+#   200:
+#     description: File saved
+#   400:
+#     description: Invalid request body
+#     content:
+#       application/json:
+#         schema:
+#           $ref: '#/components/schemas/uk.gov.hmrc.sdecipaasstub.dto.ErrorMessage'
+###
+POST  /api/v1/thread/:threadRef/file  uk.gov.hmrc.sdecipaasstub.controllers.FileController.saveFile(threadRef: String)
+
+###
+# summary: Update a thread
+# operationId: updateThread
+# tags:
+#   - Thread
+# parameters:
+#   - name: threadRef
+#     in: path
+#     required: true
+#     schema:
+#       type: string
+# requestBody:
+#   required: true
+#   content:
+#     application/json:
+#       schema:
+#         $ref: '#/components/schemas/uk.gov.hmrc.sdecipaasstub.dto.ThreadUpdate'
+# responses:
+#   200:
+#     description: Thread updated
+#     content:
+#       application/json:
+#         schema:
+#           $ref: '#/components/schemas/uk.gov.hmrc.sdecipaasstub.dto.ThreadResponse'
+#   400:
+#     description: Invalid request body
+#     content:
+#       application/json:
+#         schema:
+#           $ref: '#/components/schemas/uk.gov.hmrc.sdecipaasstub.dto.ErrorMessage'
+###
+PUT  /api/v1/thread/:threadRef  uk.gov.hmrc.sdecipaasstub.controllers.customer.ThreadController.updateThread(threadRef: String)
+
+###
+# summary: Look up a thread reference by thread ID
+# operationId: getThreadReference
+# tags:
+#   - Customer
+# parameters:
+#   - name: threadId
+#     in: path
+#     required: true
+#     schema:
+#       type: string
+# responses:
+#   200:
+#     description: Thread reference
+#     content:
+#       application/json:
+#         schema:
+#           $ref: '#/components/schemas/uk.gov.hmrc.sdecipaasstub.dto.ThreadReference'
+#   400:
+#     description: Lookup failed
+#     content:
+#       application/json:
+#         schema:
+#           $ref: '#/components/schemas/uk.gov.hmrc.sdecipaasstub.dto.ErrorMessage'
+###
+PUT  /api/v1/customer/thread/:threadId  uk.gov.hmrc.sdecipaasstub.controllers.customer.ThreadController.getThreadReference(threadId: String)
+
+### NoDocs ###
+POST  /file-upload/:bucket  uk.gov.hmrc.sdecipaasstub.controllers.mft.FileUploader.postUpload(bucket: String)

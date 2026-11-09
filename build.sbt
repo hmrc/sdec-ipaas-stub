@@ -1,4 +1,5 @@
 import uk.gov.hmrc.DefaultBuildSettings
+import uk.gov.hmrc.DefaultBuildSettings.scalaSettings
 
 ThisBuild / majorVersion := 0
 ThisBuild / scalaVersion := "3.3.6"
@@ -12,7 +13,7 @@ lazy val compilerSettings = Seq(
 )
 
 lazy val microservice = Project("sdec-ipaas-stub", file("."))
-  .enablePlugins(play.sbt.PlayScala, SbtDistributablesPlugin)
+  .enablePlugins(play.sbt.PlayScala, SbtDistributablesPlugin, SwaggerPlugin)
   .disablePlugins(JUnitXmlReportPlugin) // Required to prevent https://github.com/scalatest/scalatest/issues/1427
   .settings(
     libraryDependencies ++= AppDependencies.compile ++ AppDependencies.test,
@@ -26,6 +27,11 @@ lazy val microservice = Project("sdec-ipaas-stub", file("."))
     PlayKeys.playDefaultPort := 4999,
     Test / unmanagedResourceDirectories += baseDirectory.value / "conf"
   )
+  .settings(scalaSettings *)
+  .settings(JsonToYaml.settings *)
+  .settings(Validate.settings *)
+  .settings(PublishTestOnlySpec.settings *)
+  .settings(PlaySwagger.settings *)
 
 lazy val it = project
   .enablePlugins(PlayScala)
@@ -47,3 +53,4 @@ addCommandAlias("prePrChecks", "; scalafmtCheckAll; scalafmtSbtCheck; scalafixAl
 addCommandAlias("checkCodeCoverage", "; clean; coverage; test; coverageReport")
 addCommandAlias("lint", "; scalafmtAll; scalafmtSbt; scalafixAll")
 addCommandAlias("prePush", "; reload; clean; compile; test; lint;")
+addCommandAlias("createOpenAPISpec", "; clean; routesToYaml; validate")
