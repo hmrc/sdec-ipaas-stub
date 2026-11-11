@@ -3,6 +3,7 @@ import uk.gov.hmrc.DefaultBuildSettings
 ThisBuild / majorVersion := 0
 ThisBuild / scalaVersion := "3.3.6"
 ThisBuild / scalacOptions += "-Wconf:msg=Flag.*repeatedly:s"
+ThisBuild / semanticdbEnabled := true
 
 lazy val compilerSettings = Seq(
   scalaVersion := "3.3.7",
@@ -35,13 +36,6 @@ lazy val it = project
     compilerSettings
   )
   .settings(libraryDependencies ++= AppDependencies.it)
-
-inThisBuild(
-  List(
-    semanticdbEnabled := true,
-    semanticdbVersion := scalafixSemanticdb.revision
-  )
-)
 
 addCommandAlias("prePrChecks", "; scalafmtCheckAll; scalafmtSbtCheck; scalafixAll --check")
 addCommandAlias("checkCodeCoverage", "; clean; coverage; test; coverageReport")
