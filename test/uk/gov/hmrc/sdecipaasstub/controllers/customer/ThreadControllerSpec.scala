@@ -16,18 +16,19 @@
 
 package uk.gov.hmrc.sdecipaasstub.controllers.customer
 
-import cats.effect.IO
 import org.apache.pekko.actor.ActorSystem
 import org.apache.pekko.stream.{Materializer, SystemMaterializer}
 import org.scalatestplus.play.PlaySpec
 import pdi.jwt.*
 import play.api.libs.json.Json
+import play.api.mvc.Result
+import play.api.mvc.Results.{NotFound, Ok}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import uk.gov.hmrc.sdecipaasstub.dto.*
 import uk.gov.hmrc.sdecipaasstub.hcp.entity.ThreadStatus
 import uk.gov.hmrc.sdecipaasstub.infrastructure.{AuthenticatedIOActionBuilder, JwtUser}
-import uk.gov.hmrc.sdecipaasstub.service.algebra.ThreadServiceAlgebra
+import uk.gov.hmrc.sdecipaasstub.service.StubMappingServiceAlgebra
 
 import java.time.{LocalDate, LocalDateTime}
 import scala.concurrent.ExecutionContextExecutor
@@ -111,57 +112,24 @@ class ThreadControllerSpec extends PlaySpec {
       )
     )
 
-  private def stubThreadService(
-    lookup: (String, JwtUser) => IO[ThreadReference]
-  ): ThreadServiceAlgebra[IO] =
-    new ThreadServiceAlgebra[IO] {
+  val stubMappingServiceSuccess: StubMappingServiceAlgebra = new StubMappingServiceAlgebra {
+    def mapIdentifierToResponse(id: String): Result = Ok(Json.toJson(threadReference))
+  }
 
-      override def insert(
-        request: CreateThreadRequest
-      ): IO[ThreadResponse] =
-        IO.raiseError(new RuntimeException("Not used"))
-
-      override def findIdByRef(
-        threadRef: String
-      ): IO[Option[Long]] =
-        IO.raiseError(new RuntimeException("Not used"))
-
-      override def getThreadInfoByThreadId(
-        threadId: String,
-        user:     JwtUser
-      ): IO[ThreadReference] =
-        lookup(threadId, user)
-
-      override def findThreadsForWorkspace(
-        pid:      String,
-        teamName: String
-      ): IO[List[ThreadSummary]] =
-        IO.pure(List.empty)
-
-      override def updateThreadAndRecipient(threadUpdate: ThreadUpdate, threadRef: String): IO[ThreadUpdate] =
-        IO.pure(ThreadUpdate(None, None, None, None, None, None, Nil, "message", RequestedBy(2, 12, 1989)))
-    }
+  val stubMappingServiceBadRequest: StubMappingServiceAlgebra = new StubMappingServiceAlgebra {
+    def mapIdentifierToResponse(id: String): Result = NotFound("User details do not match recipient")
+  }
 
   private def controllerWith(
-    service: ThreadServiceAlgebra[IO]
+    stubMappingService: StubMappingServiceAlgebra
   ): ThreadController =
-    new ThreadController(cc, authAction, service)
-
-  private lazy val successfulThreadService =
-    stubThreadService((_, _) => IO.pure(threadReference))
-
-  private lazy val failingThreadService =
-    stubThreadService((_, _) =>
-      IO.raiseError(
-        new RuntimeException("User details do not match recipient")
-      )
-    )
+    new ThreadController(cc, authAction, stubMappingService)
 
   "ThreadController" should {
 
     "return OK when thread lookup succeeds" in {
 
-      val controller = controllerWith(successfulThreadService)
+      val controller = controllerWith(stubMappingServiceSuccess)
 
       val request = FakeRequest(PUT, "/api/v1/customer/thread/THREAD1000AA")
         .withHeaders("Authorization" -> s"Bearer $validToken")
@@ -173,23 +141,23 @@ class ThreadControllerSpec extends PlaySpec {
       contentAsJson(result) mustBe Json.toJson(threadReference)
     }
 
-    "return BadRequest when service validation fails" in {
+    "return NotFound when stubId does not exist" in {
 
-      val controller = controllerWith(failingThreadService)
+      val controller = controllerWith(stubMappingServiceBadRequest)
 
       val request = FakeRequest(PUT, "/api/v1/customer/thread/THREAD1000AA")
         .withHeaders("Authorization" -> s"Bearer $validToken")
 
       val result = call(controller.getThreadReference("THREAD1000AA"), request)
 
-      status(result) mustBe BAD_REQUEST
+      status(result) mustBe NOT_FOUND
 
-      contentAsJson(result) mustBe Json.toJson(ErrorMessage(Seq("User details do not match recipient")))
+      contentAsString(result) mustBe "User details do not match recipient"
     }
 
     "return Unauthorized when bearer token is missing" in {
 
-      val controller = controllerWith(successfulThreadService)
+      val controller = controllerWith(stubMappingServiceSuccess)
 
       val request = FakeRequest(PUT, "/api/v1/customer/thread/THREAD1000AA")
 

@@ -1,0 +1,37 @@
+{
+  "id": "THR-2025-0001",
+  "status": "ACTIVE",
+  "createdBy": {
+    "id": 101,
+    "pid": "P12345",
+    "name": "Jane Doe"
+  },
+  "createdTimeStamp": "2025-03-15T09:30:00",
+  "lastUpdatedTimeStamp": "2025-03-16T14:45:00",
+  "threadExpiryDate": "2025-04-15",
+  "associatedCaseReference": "CASE-2025-0456",
+  "threadOwner": {
+    "id": 102,
+    "pid": "P67890",
+    "name": "John Smith"
+  },
+  "owningTeam": {
+    "id": 1,
+    "srsName": "Customer Support",
+    "isTaskBased": false
+  },
+  "recipientDetails": {
+    "firstName": "Alice",
+    "lastName": "Johnson",
+    "email": "alice.johnson@example.com",
+    "phoneNumber": "+44 7700 900123",
+    "nationalInsuranceNumber": "AB123456C",
+    "hasRelatedCase": true,
+    "caseReferenceNumber": "CASE-2025-0789"
+  },
+  "threadDetails": {
+    "message": "Please find attached the details of the discrepancy.",
+    "responseDate": "2025-03-20"
+  }
+}
+

@@ -1,0 +1,16 @@
+{
+  "firstName": "Alice",
+  "surname": "Johnson",
+  "email": "alice.johnson@example.com",
+  "mobile": "+44 7700 900123",
+  "nino": "AB123456C",
+  "caseReference": "CASE-2025-0789",
+  "requestedItems": ["Item A", "Item B", "Item C"],
+  "message": "Please provide the requested documents.",
+  "requestedBy": {
+    "day": 15,
+    "month": 3,
+    "year": 2025
+  }
+}
+
