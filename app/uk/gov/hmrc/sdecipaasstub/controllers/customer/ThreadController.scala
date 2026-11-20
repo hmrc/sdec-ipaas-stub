@@ -18,58 +18,36 @@ package uk.gov.hmrc.sdecipaasstub.controllers.customer
 
 import cats.effect.IO
 import jakarta.inject.{Inject, Singleton}
-import play.api.libs.json.*
+import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.*
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import uk.gov.hmrc.sdecipaasstub.dto.{ErrorMessage, ThreadUpdate}
 import uk.gov.hmrc.sdecipaasstub.implicits.RequestSyntax.JsonRequestOps
-import uk.gov.hmrc.sdecipaasstub.infrastructure.{ApplicationLogger, AuthenticatedIOActionBuilder, AuthenticatedRequest, JwtUser}
-import uk.gov.hmrc.sdecipaasstub.service.algebra.ThreadServiceAlgebra
+import uk.gov.hmrc.sdecipaasstub.infrastructure.{ApplicationLogger, AuthenticatedIOActionBuilder, AuthenticatedRequest}
+import uk.gov.hmrc.sdecipaasstub.service.StubMappingServiceAlgebra
 
 @Singleton
 class ThreadController @Inject() (
-  cc:            ControllerComponents,
-  authAction:    AuthenticatedIOActionBuilder,
-  threadService: ThreadServiceAlgebra[IO]
+  cc:         ControllerComponents,
+  authAction: AuthenticatedIOActionBuilder,
+  stubMapper: StubMappingServiceAlgebra
 ) extends BackendController(cc)
     with ApplicationLogger[IO] {
 
   def updateThread(threadRef: String): Action[JsValue] =
     authAction.asyncIOJsValue { request =>
       request.bodyAs[ThreadUpdate] match {
-        case Right(threadUpdate) => handleUpdateThread(threadUpdate, threadRef)
-        case Left(errorMessage)  => IO.pure(BadRequest(Json.toJson(errorMessage)))
+        case Right(_)           => IO.pure(stubMapper.mapIdentifierToResponse(threadRef))
+        case Left(errorMessage) => IO.pure(BadRequest(Json.toJson(errorMessage)))
       }
     }
-
-  private def handleUpdateThread(threadUpdate: ThreadUpdate, threadRef: String): IO[Result] =
-    threadService
-      .updateThreadAndRecipient(threadUpdate, threadRef)
-      .map(response => Ok(Json.toJson(response)))
-      .recover(_ => InternalServerError)
 
   def getThreadReference(threadId: String): Action[AnyContent] =
     authAction.asyncIO { request =>
       given AuthenticatedRequest[AnyContent] = request
-
       for {
         _ <- logger.info(s"Getting thread information for $threadId")
-
-        response <- handleThreadLookup(threadId, request.user)
+        response = stubMapper.mapIdentifierToResponse(threadId)
       } yield response
     }
-
-  private def handleThreadLookup(
-    threadId: String,
-    user:     JwtUser
-  ): IO[Result] =
-    threadService
-      .getThreadInfoByThreadId(threadId, user)
-      .map(thread => Ok(Json.toJson(thread)))
-      .handleErrorWith { exception =>
-        getBadRequest(Seq(exception.getMessage))
-      }
-
-  private def getBadRequest(errors: Seq[String]): IO[Result] =
-    IO.pure(BadRequest(Json.toJson(ErrorMessage(errors))))
 }

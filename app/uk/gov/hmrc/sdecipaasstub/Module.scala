@@ -19,6 +19,7 @@ import cats.effect.unsafe.IORuntime
 import play.api.inject.{Binding, Module as AppModule}
 import play.api.{Configuration, Environment}
 import uk.gov.hmrc.sdecipaasstub.infrastructure.{DatabaseTransactor, FlywayMigration, H2Server, IOActionBuilder}
+import uk.gov.hmrc.sdecipaasstub.service.{StubMappingService, StubMappingServiceAlgebra}
 
 import java.time.Clock
 
@@ -34,5 +35,6 @@ class Module extends AppModule:
       bind[IOActionBuilder].toSelf,
       bind[H2Server].toSelf.eagerly(),
       bind[FlywayMigration].toSelf.eagerly(),
-      bind[DatabaseTransactor].toSelf.eagerly()
+      bind[DatabaseTransactor].toSelf.eagerly(),
+      bind[StubMappingServiceAlgebra].to(classOf[StubMappingService])
     )
