@@ -17,27 +17,37 @@
 package uk.gov.hmrc.sdecipaasstub.service
 
 import jakarta.inject.Inject
+import play.api.Logging
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.Result
-import play.api.mvc.Results.NotFound
+import play.api.mvc.Results.{InternalServerError, NotFound}
 import uk.gov.hmrc.sdecipaasstub.mappings.{Stub, StubId}
 
+import java.io.FileNotFoundException
 import scala.io.Source
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 
 trait StubMappingServiceAlgebra {
   def mapIdentifierToResponse(id: String): Result
 }
 
-class StubMappingService @Inject() extends StubMappingServiceAlgebra {
+class StubMappingService @Inject() extends StubMappingServiceAlgebra with Logging {
 
   def mapIdentifierToResponse(id: String): Result = {
     val maybeStub = Try(Stub.values.find(stub => stub.id == StubId.valueOf(id))).toOption.flatten
     maybeStub match {
       case Some(stub) =>
-        val content = readJsonFile(stub.responsePath)
-        stub.resultStatus(content)
-      case None => NotFound("stub not found")
+        Try(readJsonFile(stub.responsePath)) match {
+          case Failure(_: FileNotFoundException) => NotFound(Json.toJson("message" -> s"file not found for stubId $id"))
+          case Failure(e)                        =>
+            logger.error("failed to read stub", e)
+            InternalServerError(
+              Json.toJson("message" -> s"an error occurred while attempting to read stub file; stubId $id")
+            )
+          case Success(jsonResponse) => stub.resultStatus(jsonResponse)
+        }
+
+      case None => NotFound(Json.toJson("message" -> "stub not found"))
     }
   }
 

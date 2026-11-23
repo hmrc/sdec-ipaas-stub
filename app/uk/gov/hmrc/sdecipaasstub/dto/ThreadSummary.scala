@@ -17,7 +17,6 @@
 package uk.gov.hmrc.sdecipaasstub.dto
 
 import play.api.libs.json.{Json, OFormat}
-import uk.gov.hmrc.sdecipaasstub.hcp.entity.SdecThread
 
 import java.time.LocalDate
 
@@ -33,15 +32,4 @@ case class ThreadSummary(
 
 object ThreadSummary {
   given format: OFormat[ThreadSummary] = Json.format[ThreadSummary]
-
-  def fromEntity(entity: SdecThread): ThreadSummary =
-    ThreadSummary(
-      reference = entity.reference,
-      caseReference = entity.caseReference,
-      contactName = entity.name,
-      status = ThreadStatus.fromEntity(entity.status),
-      lastReplyDate = entity.lastUpdatedTimestamp.map(_.toLocalDate),
-      deadline = entity.requiredBy,
-      contactStatus = ContactStatus.ReplyReceived // Default for now
-    )
 }

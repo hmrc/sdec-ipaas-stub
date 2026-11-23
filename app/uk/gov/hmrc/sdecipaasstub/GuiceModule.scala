@@ -16,33 +16,8 @@
 
 package uk.gov.hmrc.sdecipaasstub
 
-import cats.effect.IO
-import com.google.inject.{AbstractModule, TypeLiteral}
-import doobie.util.transactor.Transactor
-import uk.gov.hmrc.sdecipaasstub.hcp.algebra.*
-import uk.gov.hmrc.sdecipaasstub.hcp.stubs.*
-import uk.gov.hmrc.sdecipaasstub.infrastructure.DatabaseTransactorProvider
-import uk.gov.hmrc.sdecipaasstub.service.algebra.*
-import uk.gov.hmrc.sdecipaasstub.service.io.*
+import com.google.inject.AbstractModule
 
 class GuiceModule extends AbstractModule:
 
-  override def configure(): Unit =
-
-    bind(new TypeLiteral[Transactor[IO]] {}).toProvider(classOf[DatabaseTransactorProvider])
-
-    // --- Data Access ---
-    bind(new TypeLiteral[StaffDataAccessAlgebra[IO]] {}).to(classOf[IOStaffDataRepository])
-    bind(new TypeLiteral[TeamDataAccessAlgebra[IO]] {}).to(classOf[IOTeamDataRepository])
-    bind(new TypeLiteral[StaffRoleDataAccessAlgebra[IO]] {}).to(classOf[IOStaffRoleDataRepository])
-    bind(new TypeLiteral[FileDataAccessAlgebra[IO]] {}).to(classOf[IOFileDataRepository])
-    bind(new TypeLiteral[ThreadDataAccessAlgebra[IO]] {}).to(classOf[IOThreadDataRepository])
-    bind(new TypeLiteral[RecipientDataAccessAlgebra[IO]] {}).to(classOf[IORecipientDataRepository])
-
-    // --- Services ---
-    bind(new TypeLiteral[FileServiceAlgebra[IO]] {}).to(classOf[IOFileService])
-    bind(new TypeLiteral[StaffRoleServiceAlgebra[IO]] {}).to(classOf[IOStaffRoleService])
-    bind(new TypeLiteral[StaffServiceAlgebra[IO]] {}).to(classOf[IOStaffService])
-    bind(new TypeLiteral[TeamServiceAlgebra[IO]] {}).to(classOf[IOTeamService])
-    bind(new TypeLiteral[ThreadServiceAlgebra[IO]] {}).to(classOf[IOThreadService])
-    bind(new TypeLiteral[RecipientServiceAlgebra[IO]] {}).to(classOf[IORecipientService])
+  override def configure(): Unit = {}

@@ -17,19 +17,71 @@
 package uk.gov.hmrc.sdecipaasstub.mappings
 
 import play.api.mvc.Results.{Ok, Status}
+import uk.gov.hmrc.sdecipaasstub.mappings.Identifier.*
 
-enum StubId(val description: String):
-  case TESTONLY extends StubId(description = "testOnly Identifier")
-  case HDJ2123F extends StubId(description = "thread Id for get thread")
+enum StubId(val `type`: Identifier):
+
+  case HDJ2123F extends StubId(`type` = ThreadReference)
+  case HDJ2123G extends StubId(`type` = ThreadReference)
+  case HDJ2123H extends StubId(`type` = ThreadReference)
+  case WM111111D extends StubId(`type` = Nino)
+  case ABC123 extends StubId(`type` = Pid)
+  case DEF456 extends StubId(`type` = Pid)
+  case GHI789 extends StubId(`type` = Pid)
+  case JKL012 extends StubId(`type` = Pid)
+  case Test extends StubId(`type` = TestOnly)
+  case MissingFileTestOnly extends StubId(`type` = TestOnly)
+  case MissingJsonTestOnly extends StubId(`type` = TestOnly)
 
 enum Stub(val id: StubId, val description: String, val responsePath: String, val resultStatus: Status) {
-  case GetThreadSuccess
+
+  case MissingJsonTestOnlyStub
       extends Stub(
-        StubId.HDJ2123F,
-        "Stub that returns a successful IpaaS response",
-        "responses/getThreadSuccess.json",
+        StubId.MissingJsonTestOnly,
+        "Stub to be used in StubMappingServiceSpec only",
+        "responses/testOnlyInvalidContent.json",
         Ok
       )
+
   case TestOnlyStub
-      extends Stub(StubId.TESTONLY, "Stub to be used in StubMappingServiceSpec only", "responses/testOnly.json", Ok)
+      extends Stub(StubId.Test, "Stub to be used in StubMappingServiceSpec only", "responses/testOnly.json", Ok)
+
+  case MissingFileTestOnlyStub
+      extends Stub(
+        StubId.MissingFileTestOnly,
+        "Stub to be used in StubMappingServiceSpec only",
+        "responses/missing.json",
+        Ok
+      )
+
+  case CreateThreadSuccess
+      extends Stub(
+        StubId.JKL012,
+        "Stub that returns a thread creation success response",
+        "responses/createThreadSuccess.json",
+        Ok
+      )
+  case UpdateThreadSuccess
+      extends Stub(
+        StubId.HDJ2123G,
+        "Stub that returns a thread update success response",
+        "responses/updateThreadSuccess.json",
+        Ok
+      )
+  case GetThreadSuccess
+      extends Stub(StubId.HDJ2123F, "Stub that returns thread details", "responses/getThreadSuccess.json", Ok)
+  case GetThreadSummarySuccess
+      extends Stub(StubId.ABC123, "Stub that returns thread summary", "responses/getThreadSummarySuccess.json", Ok)
+  case StaffUpdateSuccess
+      extends Stub(StubId.DEF456, "Stub that returns staff update success", "responses/staffUpdateSuccess.json", Ok)
+  case StaffInsertSuccess
+      extends Stub(StubId.GHI789, "Stub that returns staff insert success", "responses/staffInsertSuccess.json", Ok)
+  case FileSaveSuccess
+      extends Stub(
+        StubId.HDJ2123H,
+        "Stub that returns file insert success response",
+        "responses/saveFileSuccess.json",
+        Ok
+      )
+
 }

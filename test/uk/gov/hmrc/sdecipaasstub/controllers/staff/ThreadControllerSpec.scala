@@ -15,21 +15,18 @@
  */
 
 package uk.gov.hmrc.sdecipaasstub.controllers.staff
-
-import cats.effect.IO
 import org.apache.pekko.actor.ActorSystem
 import org.apache.pekko.stream.{Materializer, SystemMaterializer}
 import org.scalatestplus.play.PlaySpec
 import play.api.libs.json.Json
+import play.api.mvc.Result
+import play.api.mvc.Results.Ok
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import uk.gov.hmrc.sdecipaasstub.controllers.staff.ThreadController
-import uk.gov.hmrc.sdecipaasstub.dto.ThreadReference
-import uk.gov.hmrc.sdecipaasstub.dto.{CreateThreadRequest, RequestedBy, ThreadResponse, ThreadSummary, ThreadUpdate}
+import uk.gov.hmrc.sdecipaasstub.dto.{CreateThreadRequest, ThreadResponse}
 import uk.gov.hmrc.sdecipaasstub.infrastructure.IOActionBuilder
-import uk.gov.hmrc.sdecipaasstub.infrastructure.JwtUser
-import uk.gov.hmrc.sdecipaasstub.service.algebra.ThreadServiceAlgebra
-import uk.gov.hmrc.sdecipaasstub.service.errors.{StaffLookupError, TeamLookupError}
+import uk.gov.hmrc.sdecipaasstub.service.StubMappingServiceAlgebra
 
 import scala.concurrent.ExecutionContextExecutor
 
@@ -46,42 +43,22 @@ class ThreadControllerSpec extends PlaySpec {
   private lazy val runtime       = cats.effect.unsafe.IORuntime.global
   private lazy val actionBuilder = new IOActionBuilder(cc, runtime, ec)
 
-  private val unknownPid  = "9999"
-  private val unknownTeam = "Unknown_Team"
-  private val reference   = "ABCD12345"
-
-  private lazy val threadService = new ThreadServiceAlgebra[IO] {
-
-    override def insert(request: CreateThreadRequest): IO[ThreadResponse] =
-      if request.pid == unknownPid then IO.raiseError(new StaffLookupError(s"No staff found for pid ${request.pid}"))
-      else if request.team == unknownTeam then
-        IO.raiseError(new TeamLookupError(s"No team found with name ${request.team}"))
-      else IO.pure(ThreadResponse(reference))
-
-    override def findIdByRef(threadRef: String): IO[Option[Long]] =
-      IO.pure(Some(1L))
-
-    override def findThreadsForWorkspace(pid: String, teamName: String): IO[List[ThreadSummary]] = IO.pure(List())
-
-    override def updateThreadAndRecipient(threadUpdate: ThreadUpdate, threadRef: String): IO[ThreadUpdate] =
-      IO.pure(ThreadUpdate(Some(""), None, None, None, None, None, List("a", "b"), "", RequestedBy(20, 2, 1992)))
-
-    override def getThreadInfoByThreadId(
-      threadId: String,
-      user:     JwtUser
-    ): IO[ThreadReference] =
-      IO.raiseError(
-        new RuntimeException("Not implemented in this test")
-      )
-  }
-
-  val controller = new ThreadController(cc, actionBuilder, threadService)
+  private val threadResponse =
+    ThreadResponse("ABCD12345")
 
   "ThreadController" should {
+
     val createRequest = CreateThreadRequest(pid = "1001", team = "Child_Benefit")
     val requestJson   = Json.toJson(createRequest)
 
     "return Bad Request when JSON is not defined" in {
+
+      val stubMappingService = new StubMappingServiceAlgebra {
+        override def mapIdentifierToResponse(id: String): Result = Ok(Json.toJson(threadResponse))
+      }
+
+      val controller = new ThreadController(cc, actionBuilder, stubMappingService)
+
       val request = FakeRequest(POST, "/sdec-ipaas-stub/api/v1/thread")
 
       val result = call(controller.insert(), request)
@@ -90,6 +67,13 @@ class ThreadControllerSpec extends PlaySpec {
     }
 
     "return Bad Request when JSON is invalid" in {
+
+      val stubMappingService = new StubMappingServiceAlgebra {
+        override def mapIdentifierToResponse(id: String): Result = Ok(Json.toJson(threadResponse))
+      }
+
+      val controller = new ThreadController(cc, actionBuilder, stubMappingService)
+
       val request = FakeRequest(POST, "/sdec-ipaas-stub/api/v1/thread")
         .withJsonBody(Json.obj("pid" -> "1001"))
 
@@ -98,32 +82,21 @@ class ThreadControllerSpec extends PlaySpec {
       status(result) mustBe BAD_REQUEST
     }
 
-    "return Bad Request when staff cannot be found" in {
-      val request = FakeRequest(POST, "/sdec-ipaas-stub/api/v1/thread")
-        .withJsonBody(Json.toJson(createRequest.copy(pid = unknownPid)))
-
-      val result = call(controller.insert(), request)
-
-      status(result) mustBe BAD_REQUEST
-    }
-
-    "return Bad Request when team cannot be found" in {
-      val request = FakeRequest(POST, "/sdec-ipaas-stub/api/v1/thread")
-        .withJsonBody(Json.toJson(createRequest.copy(team = unknownTeam)))
-
-      val result = call(controller.insert(), request)
-
-      status(result) mustBe BAD_REQUEST
-    }
-
     "handle POST successfully" in {
+
+      val stubMappingService = new StubMappingServiceAlgebra {
+        override def mapIdentifierToResponse(id: String): Result = Ok(Json.toJson(threadResponse))
+      }
+
+      val controller = new ThreadController(cc, actionBuilder, stubMappingService)
+
       val request = FakeRequest(POST, "/sdec-ipaas-stub/api/v1/thread")
         .withJsonBody(requestJson)
 
       val result = call(controller.insert(), request)
 
       status(result) mustBe OK
-      contentAsJson(result) mustBe Json.toJson(ThreadResponse(reference))
+      contentAsJson(result) mustBe Json.toJson(threadResponse)
     }
   }
 

@@ -14,18 +14,10 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.sdecipaasstub.service.io
+package uk.gov.hmrc.sdecipaasstub.mappings
 
-import cats.effect.IO
-import uk.gov.hmrc.sdecipaasstub.hcp.algebra.StaffDataAccessAlgebra
-import uk.gov.hmrc.sdecipaasstub.service.algebra.{StaffRoleServiceAlgebra, TeamServiceAlgebra}
-import uk.gov.hmrc.sdecipaasstub.service.impl.StaffService
-
-import javax.inject.{Inject, Singleton}
-
-@Singleton
-class IOStaffService @Inject() (
-  staffDataAccess:  StaffDataAccessAlgebra[IO],
-  teamService:      TeamServiceAlgebra[IO],
-  staffRoleService: StaffRoleServiceAlgebra[IO]
-) extends StaffService[IO](staffDataAccess, teamService, staffRoleService) {}
+enum Identifier:
+  case TestOnly extends Identifier
+  case ThreadReference extends Identifier
+  case Nino extends Identifier
+  case Pid extends Identifier

@@ -18,68 +18,32 @@ package uk.gov.hmrc.sdecipaasstub.controllers.staff
 
 import cats.effect.IO
 import jakarta.inject.{Inject, Singleton}
-import play.api.libs.json.*
-import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
+import play.api.libs.json.{JsValue, Json}
+import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
-import uk.gov.hmrc.sdecipaasstub.dto.{CreateThreadRequest, ErrorMessage}
+import uk.gov.hmrc.sdecipaasstub.dto.CreateThreadRequest
+import uk.gov.hmrc.sdecipaasstub.implicits.RequestSyntax.JsonRequestOps
 import uk.gov.hmrc.sdecipaasstub.infrastructure.{ApplicationLogger, IOActionBuilder}
-import uk.gov.hmrc.sdecipaasstub.service.algebra.ThreadServiceAlgebra
-import uk.gov.hmrc.sdecipaasstub.service.errors.{StaffLookupError, TeamLookupError}
+import uk.gov.hmrc.sdecipaasstub.service.StubMappingServiceAlgebra
 
 @Singleton
 class ThreadController @Inject() (
-  cc:            ControllerComponents,
-  action:        IOActionBuilder,
-  threadService: ThreadServiceAlgebra[IO]
+  cc:         ControllerComponents,
+  action:     IOActionBuilder,
+  stubMapper: StubMappingServiceAlgebra
 ) extends BackendController(cc)
     with ApplicationLogger[IO] {
 
-  def getThreadsForWorkspace(pid: String, teamName: String): Action[AnyContent] =
+  def getThreadsForWorkspace(pid: String, team: String): Action[AnyContent] =
     action.asyncIO { _ =>
-      threadService
-        .findThreadsForWorkspace(pid, teamName)
-        .map(list => Ok(Json.toJson(list)))
-        .recover { case e: Exception =>
-          logger.warn(s"Workspace thread retrieval for PID/Team [$pid, $teamName] failed with ${e.getMessage}")
-          ServiceUnavailable(Json.obj("message" -> e.getMessage))
-        }
+      IO.pure(stubMapper.mapIdentifierToResponse(pid))
     }
 
-  def insert(): Action[AnyContent] =
-    action.asyncIO { request =>
-      request.body.asJson match {
-        case Some(json) =>
-          for {
-            _        <- logger.info(s"Handling POST for $json")
-            response <- handleCreateThread(CreateThreadRequest.fromJson(json))
-          } yield response
-        case None =>
-          getBadRequest(Seq("Request body must contain JSON"))
+  def insert(): Action[JsValue] =
+    action.asyncIOJsValue { request =>
+      request.bodyAs[CreateThreadRequest] match {
+        case Right(req)         => IO.pure(stubMapper.mapIdentifierToResponse(req.pid))
+        case Left(errorMessage) => IO.pure(BadRequest(Json.toJson(errorMessage)))
       }
     }
-
-  private def handleCreateThread(jsResult: JsResult[CreateThreadRequest]): IO[Result] =
-    jsResult match {
-      case JsSuccess(createRequest, _) =>
-        threadService
-          .insert(createRequest)
-          .map(response => Ok(Json.toJson(response)))
-          .recoverWith {
-            case e: StaffLookupError => getBadRequest(Seq(e.getMessage))
-            case e: TeamLookupError  => getBadRequest(Seq(e.getMessage))
-          }
-      case JsError(errors) =>
-        handleJsErrors(errors)
-    }
-
-  private def handleJsErrors(errors: collection.Seq[(JsPath, collection.Seq[JsonValidationError])]): IO[Result] =
-    val jsonErrors = errors.map { (path, validationErrors) =>
-      s"${path.toString} Errors: ${validationErrors.mkString(",")}"
-    }.toList
-    getBadRequest(jsonErrors)
-
-  private def getBadRequest(errors: Seq[String]): IO[Result] =
-    IO.pure(BadRequest(Json.toJson(ErrorMessage(errors))))
-
 }

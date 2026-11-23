@@ -23,7 +23,7 @@ import play.api.mvc.*
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import uk.gov.hmrc.sdecipaasstub.dto.{ErrorMessage, ThreadUpdate}
 import uk.gov.hmrc.sdecipaasstub.implicits.RequestSyntax.JsonRequestOps
-import uk.gov.hmrc.sdecipaasstub.infrastructure.{ApplicationLogger, AuthenticatedIOActionBuilder, AuthenticatedRequest}
+import uk.gov.hmrc.sdecipaasstub.infrastructure.{ApplicationLogger, AuthenticatedIOActionBuilder}
 import uk.gov.hmrc.sdecipaasstub.service.StubMappingServiceAlgebra
 
 @Singleton
@@ -43,8 +43,7 @@ class ThreadController @Inject() (
     }
 
   def getThreadReference(threadId: String): Action[AnyContent] =
-    authAction.asyncIO { request =>
-      given AuthenticatedRequest[AnyContent] = request
+    authAction.asyncIO { _ =>
       for {
         _ <- logger.info(s"Getting thread information for $threadId")
         response = stubMapper.mapIdentifierToResponse(threadId)

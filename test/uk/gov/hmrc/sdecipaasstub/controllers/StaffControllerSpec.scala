@@ -15,18 +15,17 @@
  */
 
 package uk.gov.hmrc.sdecipaasstub.controllers
-
-import cats.effect.IO
 import org.apache.pekko.actor.ActorSystem
 import org.apache.pekko.stream.{Materializer, SystemMaterializer}
 import org.scalatestplus.play.PlaySpec
 import play.api.libs.json.Json
+import play.api.mvc.Result
+import play.api.mvc.Results.Ok
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
-import uk.gov.hmrc.sdecipaasstub.dto.{Staff, StaffTeam, StaffTeams, StaffUpdate}
-import uk.gov.hmrc.sdecipaasstub.hcp.entity.SdecStaff
+import uk.gov.hmrc.sdecipaasstub.dto.{Staff, StaffTeam}
 import uk.gov.hmrc.sdecipaasstub.infrastructure.IOActionBuilder
-import uk.gov.hmrc.sdecipaasstub.service.algebra.StaffServiceAlgebra
+import uk.gov.hmrc.sdecipaasstub.service.StubMappingServiceAlgebra
 
 import scala.concurrent.ExecutionContextExecutor
 
@@ -43,25 +42,17 @@ class StaffControllerSpec extends PlaySpec {
   private lazy val runtime       = cats.effect.unsafe.IORuntime.global
   private lazy val actionBuilder = new IOActionBuilder(cc, runtime, ec)
 
-  private lazy val staffService = new StaffServiceAlgebra[IO] {
+  private val staff = Staff(pid = "1001", name = "Test User", email = "tu@tu.gov.uk", srs = "sdec_vat_user")
+  private val staffTeam: StaffTeam = StaffTeam(staffId = 1L, teamId = 1L)
+  private val staffJson = Json.toJson(staff)
 
-    override def upsert(staff: Staff): IO[StaffTeam] =
-      IO.pure(StaffTeam(1L, 1L))
-
-    override def upsert(staffUpdate: StaffUpdate): IO[StaffTeams] =
-      IO.pure(StaffTeams(1L, Seq(1L)))
-
-    override def findByPid(pid: String): IO[Option[SdecStaff]] = IO(None)
-
-    override def findStaff(staffId: Long): IO[SdecStaff] = IO(SdecStaff(1L, "pid", "Name", None))
-
+  private val stubMappingService = new StubMappingServiceAlgebra {
+    override def mapIdentifierToResponse(id: String): Result = Ok(Json.toJson(staffTeam))
   }
 
-  val controller = new StaffController(cc, actionBuilder, staffService)
+  val controller = new StaffController(cc, actionBuilder, stubMappingService)
 
   "StaffController" should {
-    val staff     = Staff(pid = "1001", name = "Test User", email = "tu@tu.gov.uk", srs = "sdec_vat_user")
-    val staffJson = Json.toJson(staff)
 
     "return Bad Request when JSON is not defined" in {
       val request = FakeRequest(POST, "/sdec-ipaas-stub/api/v1/staff")
@@ -78,7 +69,7 @@ class StaffControllerSpec extends PlaySpec {
       val result = call(controller.insert(), request)
 
       status(result) mustBe OK
-      contentAsJson(result) mustBe Json.toJson(StaffTeam(1L, 1L))
+      contentAsJson(result) mustBe Json.toJson(staffTeam)
     }
   }
 

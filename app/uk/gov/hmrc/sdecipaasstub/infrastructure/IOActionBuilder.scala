@@ -41,7 +41,7 @@ class IOActionBuilder @Inject() (
   def asyncIOJsValue(
     block: Request[JsValue] => IO[Result]
   ): Action[JsValue] =
-    Action.async(cc.parsers.json) { request =>
+    Action.async(cc.parsers.tolerantJson) { request =>
       block(request).unsafeToFuture()(runtime)
     }
 

@@ -20,7 +20,7 @@ import org.scalatest.matchers.must.Matchers
 import org.scalatest.matchers.should.Matchers.shouldBe
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.libs.json.Json
-import play.api.mvc.Results.{NotFound, Ok}
+import play.api.mvc.Results.{InternalServerError, NotFound, Ok}
 import uk.gov.hmrc.sdecipaasstub.mappings.StubId
 import uk.gov.hmrc.sdecipaasstub.service.StubMappingService
 
@@ -36,12 +36,28 @@ class StubMappingServiceSpec extends AnyWordSpec with Matchers {
                                |  "response": "this is a test"
                                |}""".stripMargin
 
-      underTest.mapIdentifierToResponse(StubId.TESTONLY.toString) shouldBe Ok(Json.parse(expectedRepsonse))
+      underTest.mapIdentifierToResponse(StubId.Test.toString) shouldBe Ok(Json.parse(expectedRepsonse))
     }
 
     "map return Notfound if the stub does not exist" in {
 
-      underTest.mapIdentifierToResponse("MISSING") shouldBe NotFound("stub not found")
+      underTest.mapIdentifierToResponse("MISSING") shouldBe NotFound(Json.toJson("message" -> "stub not found"))
+    }
+
+    "map return Notfound if the file associated with the stub does not exist" in {
+
+      underTest.mapIdentifierToResponse(StubId.MissingFileTestOnly.toString) shouldBe NotFound(
+        Json.toJson("message" -> s"file not found for stubId MissingFileTestOnly")
+      )
+    }
+
+    "map return InternalServerError if the content of the response file is not json" in {
+
+      underTest.mapIdentifierToResponse(StubId.MissingJsonTestOnly.toString) shouldBe InternalServerError(
+        Json.toJson(
+          Json.toJson("message" -> s"an error occurred while attempting to read stub file; stubId MissingJsonTestOnly")
+        )
+      )
     }
   }
 
