@@ -17,7 +17,6 @@
 package uk.gov.hmrc.sdecipaasstub.dto
 
 import play.api.libs.json.*
-import uk.gov.hmrc.sdecipaasstub.hcp.entity.ThreadStatus as EntityStatus
 
 enum ThreadStatus {
   case Pending
@@ -42,13 +41,4 @@ object ThreadStatus {
     },
     Writes(status => JsString(status.toString))
   )
-
-  def fromEntity(status: EntityStatus): ThreadStatus =
-    status match {
-      case EntityStatus.PENDING  => Pending
-      case EntityStatus.ACTIVE   => Active
-      case EntityStatus.CLOSED   => Closed
-      case EntityStatus.REOPENED => Reopened
-      case _                     => Undefined
-    }
 }

@@ -17,7 +17,6 @@
 package uk.gov.hmrc.sdecipaasstub.dto
 
 import play.api.libs.json.{JsResult, JsValue, Json, OFormat}
-import uk.gov.hmrc.sdecipaasstub.hcp.entity.SdecFileMetadata
 
 final case class FileMetadata(
   filename:  String,
@@ -32,14 +31,4 @@ object FileMetadata {
   given format: OFormat[FileMetadata] = Json.format[FileMetadata]
 
   def fromJson(json: JsValue): JsResult[FileMetadata] = json.validate[FileMetadata]
-
-  def fromEntity(entity: SdecFileMetadata): FileMetadata =
-    FileMetadata(
-      filename = entity.filename,
-      s3Bucket = entity.s3Bucket,
-      filesize = entity.fileSize,
-      filetype = entity.fileType,
-      objectKey = entity.fileKey,
-      etag = entity.fileEtag
-    )
 }

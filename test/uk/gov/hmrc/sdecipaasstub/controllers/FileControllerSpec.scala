@@ -15,17 +15,17 @@
  */
 
 package uk.gov.hmrc.sdecipaasstub.controllers
-
-import cats.effect.IO
 import org.apache.pekko.actor.ActorSystem
 import org.apache.pekko.stream.{Materializer, SystemMaterializer}
 import org.scalatestplus.play.PlaySpec
 import play.api.libs.json.Json
+import play.api.mvc.Result
+import play.api.mvc.Results.Ok
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import uk.gov.hmrc.sdecipaasstub.dto.FileMetadata
 import uk.gov.hmrc.sdecipaasstub.infrastructure.IOActionBuilder
-import uk.gov.hmrc.sdecipaasstub.service.algebra.FileServiceAlgebra
+import uk.gov.hmrc.sdecipaasstub.service.StubMappingServiceAlgebra
 
 import scala.concurrent.ExecutionContextExecutor
 
@@ -42,32 +42,24 @@ class FileControllerSpec extends PlaySpec {
   private lazy val runtime       = cats.effect.unsafe.IORuntime.global
   private lazy val actionBuilder = new IOActionBuilder(cc, runtime, ec)
 
-  private lazy val fileService = new FileServiceAlgebra[IO] {
-    override def saveFile(metadata: FileMetadata, threadRef: String): IO[FileMetadata] =
-      IO.pure(
-        FileMetadata(
-          filename = "filename1",
-          s3Bucket = "s3bucket1",
-          filesize = 1024,
-          filetype = "filetype1",
-          objectKey = "objectKey1",
-          etag = "etag1"
-        )
-      )
+  val fileMetaData: FileMetadata = FileMetadata(
+    filename = "filename1",
+    s3Bucket = "s3bucket1",
+    filesize = 1024,
+    filetype = "filetype1",
+    objectKey = "objectKey1",
+    etag = "etag1"
+  )
+
+  private val fileMetaDataJson = Json.toJson(fileMetaData)
+
+  private val stubMappingService = new StubMappingServiceAlgebra {
+    override def mapIdentifierToResponse(id: String): Result = Ok(fileMetaDataJson)
   }
 
-  val controller = new FileController(cc, actionBuilder, fileService)
+  val controller = new FileController(cc, actionBuilder, stubMappingService)
 
   "FileController" should {
-    val fileMetaData = FileMetadata(
-      filename = "filename1",
-      s3Bucket = "s3bucket1",
-      filesize = 1024,
-      filetype = "filetype1",
-      objectKey = "objectKey1",
-      etag = "etag1"
-    )
-    val fileMetaDataJson = Json.toJson(fileMetaData)
 
     "return Bad Request when JSON is not defined" in {
       val request = FakeRequest(POST, "/sdec-ipaas-stub/api/thread/THREAD1000AA/file")

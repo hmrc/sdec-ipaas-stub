@@ -26,7 +26,6 @@ import play.api.mvc.Results.{NotFound, Ok}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.*
 import uk.gov.hmrc.sdecipaasstub.dto.*
-import uk.gov.hmrc.sdecipaasstub.hcp.entity.ThreadStatus
 import uk.gov.hmrc.sdecipaasstub.infrastructure.{AuthenticatedIOActionBuilder, JwtUser}
 import uk.gov.hmrc.sdecipaasstub.service.StubMappingServiceAlgebra
 
@@ -82,7 +81,7 @@ class ThreadControllerSpec extends PlaySpec {
   private val threadReference =
     ThreadReference(
       id = "THREAD1000AA",
-      status = ThreadStatus.ACTIVE,
+      status = ThreadStatus.Active,
       createdBy = StaffDetails(
         id = 1L,
         pid = "1001",

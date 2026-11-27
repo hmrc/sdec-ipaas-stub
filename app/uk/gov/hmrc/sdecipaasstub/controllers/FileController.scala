@@ -18,51 +18,23 @@ package uk.gov.hmrc.sdecipaasstub.controllers
 
 import cats.effect.IO
 import jakarta.inject.{Inject, Singleton}
-import play.api.libs.json.*
-import play.api.mvc.{Action, AnyContent, ControllerComponents, Request, Result}
+import play.api.libs.json.JsValue
+import play.api.mvc.*
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
-import uk.gov.hmrc.sdecipaasstub.dto.{ErrorMessage, FileMetadata}
 import uk.gov.hmrc.sdecipaasstub.infrastructure.{ApplicationLogger, IOActionBuilder}
-import uk.gov.hmrc.sdecipaasstub.service.algebra.FileServiceAlgebra
+import uk.gov.hmrc.sdecipaasstub.service.StubMappingServiceAlgebra
 
 @Singleton
 class FileController @Inject() (
-  cc:          ControllerComponents,
-  action:      IOActionBuilder,
-  fileService: FileServiceAlgebra[IO]
+  cc:         ControllerComponents,
+  action:     IOActionBuilder,
+  stubMapper: StubMappingServiceAlgebra
 ) extends BackendController(cc)
     with ApplicationLogger[IO] {
 
-  def saveFile(threadRef: String): Action[AnyContent] =
-    action.asyncIO { request =>
-      given Request[AnyContent] = request
-      request.body.asJson match {
-        case Some(json) =>
-          for {
-            _ <- logger.info(s"Handling POST for $json")
-            metadata = FileMetadata.fromJson(json)
-            response <- handleFileSave(metadata, threadRef)
-          } yield response
-        case None =>
-          getBadRequest(Seq("Request body must contain JSON"))
-      }
+  def saveFile(threadRef: String): Action[JsValue] =
+    action.asyncIOJsValue { _ =>
+      IO.pure(stubMapper.mapIdentifierToResponse(threadRef))
     }
-
-  private def handleFileSave(jsResult: JsResult[FileMetadata], threadRef: String): IO[Result] =
-    jsResult match {
-      case JsSuccess(metadata, _) =>
-        fileService.saveFile(metadata, threadRef).map(r => Ok(Json.toJson(r)))
-      case JsError(errors) =>
-        handleJsErrors(errors)
-    }
-
-  private def handleJsErrors(errors: collection.Seq[(JsPath, collection.Seq[JsonValidationError])]): IO[Result] =
-    val jsonErrors = errors.map { (path, validationErrors) =>
-      s"${path.toString} Errors: ${validationErrors.mkString(",")}"
-    }.toList
-    getBadRequest(jsonErrors)
-
-  private def getBadRequest(errors: Seq[String]): IO[Result] =
-    IO.pure(BadRequest(Json.toJson(ErrorMessage(errors))))
 
 }

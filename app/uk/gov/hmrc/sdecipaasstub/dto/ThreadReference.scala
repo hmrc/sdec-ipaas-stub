@@ -17,7 +17,6 @@
 package uk.gov.hmrc.sdecipaasstub.dto
 
 import play.api.libs.json.{Json, OFormat}
-import uk.gov.hmrc.sdecipaasstub.hcp.entity.ThreadStatus
 
 import java.time.{LocalDate, LocalDateTime}
 

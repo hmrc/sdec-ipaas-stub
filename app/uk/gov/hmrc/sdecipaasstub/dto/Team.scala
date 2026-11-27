@@ -17,7 +17,6 @@
 package uk.gov.hmrc.sdecipaasstub.dto
 
 import play.api.libs.json.{JsResult, JsValue, Json, OFormat}
-import uk.gov.hmrc.sdecipaasstub.hcp.entity.SdecTeam
 
 final case class Team(
   id:          Long,
@@ -29,11 +28,4 @@ object Team {
   given format: OFormat[Team] = Json.format[Team]
 
   def fromJson(json: JsValue): JsResult[Team] = json.validate[Team]
-
-  def fromEntity(entity: SdecTeam): Team =
-    Team(
-      id = entity.id,
-      srsName = entity.srsName,
-      isTaskBased = entity.isTaskBased
-    )
 }

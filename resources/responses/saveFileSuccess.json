@@ -1,0 +1,9 @@
+{
+  "filename" : "example.pdf",
+  "s3Bucket" : "my-bucket",
+  "filesize" : 123456789,
+  "filetype" : "application/pdf",
+  "objectKey" : "path/to/example.pdf",
+  "etag" : "abc123def456"
+}
+
